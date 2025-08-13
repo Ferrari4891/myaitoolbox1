@@ -36,14 +36,14 @@ const Navigation = () => {
           </Link>
 
           {/* Hamburger Menu Button */}
-          <Button
-            variant="ghost"
+          <div
             onClick={toggleMenu}
-            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-1"
+            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-2 rounded-md cursor-pointer flex items-center justify-center"
             aria-label="Toggle menu"
+            style={{ width: '48px', height: '48px' }}
           >
-            {isOpen ? <X className="h-12 w-12" strokeWidth={2} /> : <Menu className="h-12 w-12" strokeWidth={2} />}
-          </Button>
+            {isOpen ? <X size={48} strokeWidth={2} /> : <Menu size={48} strokeWidth={2} />}
+          </div>
         </div>
 
         {/* Mobile Menu - Slide out from left */}
