@@ -9,31 +9,38 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the current URL and check for auth parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const type = urlParams.get('type');
+        // Get the URL fragment (after #) which contains auth tokens
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
         
-        console.log('Auth callback received:', { token: !!token, type });
+        console.log('Auth callback received:', { 
+          hasAccessToken: !!accessToken, 
+          hasRefreshToken: !!refreshToken, 
+          type 
+        });
         
-        if (token && type === 'magiclink') {
-          // Process the magic link
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'magiclink'
+        if (accessToken && refreshToken && type === 'magiclink') {
+          // Set the session directly using the tokens from the URL
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
           });
           
           if (error) {
-            console.error('Magic link verification error:', error);
+            console.error('Session setup error:', error);
             toast.error(`Authentication failed: ${error.message}`);
             navigate('/sign-in');
           } else {
-            console.log('Magic link verification successful:', data);
+            console.log('Session setup successful:', data);
             toast.success('Successfully signed in!');
+            // Clean up the URL and redirect
+            window.history.replaceState({}, document.title, '/');
             navigate('/');
           }
         } else {
-          console.log('No auth parameters found, redirecting to sign in');
+          console.log('No valid auth tokens found, redirecting to sign in');
           navigate('/sign-in');
         }
       } catch (error) {
