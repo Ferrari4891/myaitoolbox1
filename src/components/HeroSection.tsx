@@ -37,7 +37,7 @@ const HeroSection = ({
       </div>
       
       {/* Bottom Shadow */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-400/30 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-600/60 to-transparent pointer-events-none" />
       
       {/* Bottom White Line */}
       <div className="absolute bottom-0 left-0 right-0 h-2 bg-white" />
