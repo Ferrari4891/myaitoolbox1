@@ -55,8 +55,14 @@ const ApprovedVenues = () => {
     const images = [venue.image_1_url, venue.image_2_url, venue.image_3_url]
       .filter(Boolean) as string[];
     
-    // If no images, use default placeholder images
-    if (images.length === 0) {
+    // Filter out Google Photos URLs as they don't work for direct embedding
+    const validImages = images.filter(url => 
+      !url.includes('photos.google.com') && 
+      (url.startsWith('http') || url.startsWith('/'))
+    );
+    
+    // If no valid images, use default placeholder images
+    if (validImages.length === 0) {
       return [
         "/lovable-uploads/a44177ba-4fed-4d95-84a9-5f60ed868687.png",
         "/lovable-uploads/a15c0703-9909-4cba-a906-d5b7d26c81af.png",
@@ -64,7 +70,7 @@ const ApprovedVenues = () => {
       ];
     }
     
-    return images;
+    return validImages;
   };
 
   const openGoogleMaps = (address: string, mapsLink?: string) => {
