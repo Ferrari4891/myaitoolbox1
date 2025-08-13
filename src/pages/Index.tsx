@@ -1,12 +1,51 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Navigation from "@/components/Navigation";
+import HeroSection from "@/components/HeroSection";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <HeroSection
+        backgroundImage="/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png"
+        title="gallopinggeezers.com"
+        height="h-96 md:h-screen"
+      />
+
+      <main className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
+              Welcome to Our Community
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Join fellow members in organizing and participating in amazing activities. 
+              From coffee meetups to lunch gatherings and dinner experiences - 
+              there's always something exciting happening in our community.
+            </p>
+          </div>
+
+          <div className="text-center">
+            <Link to="/join">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg transition-smooth shadow-elegant"
+              >
+                Join Our Community
+              </Button>
+            </Link>
+          </div>
+
+          {/* Content placeholder for future additions */}
+          <div className="mt-20 text-center">
+            <p className="text-muted-foreground italic">
+              More content coming soon...
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
