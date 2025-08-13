@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, ExternalLink } from "lucide-react";
+import { MapPin, Facebook, ExternalLink, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 
 interface Venue {
@@ -23,11 +24,37 @@ interface Venue {
 const ApprovedVenues = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    checkAdminStatus();
     fetchVenues();
   }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single();
+
+      setIsAdmin(profile?.is_admin || false);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const fetchVenues = async () => {
     try {
@@ -178,6 +205,20 @@ const ApprovedVenues = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {isAdmin && (
+                    <div className="pt-2 border-t border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center gap-2"
+                        onClick={() => navigate(`/edit-venue/${venue.id}`)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit Venue
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
