@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, ExternalLink, Check, X, Eye, Users } from "lucide-react";
+import { MapPin, Facebook, ExternalLink, Check, X, Eye, Users, Trash2 } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingVenues, setProcessingVenues] = useState<Set<string>>(new Set());
+  const [removingMembers, setRemovingMembers] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -220,6 +221,45 @@ const Admin = () => {
     return images;
   };
 
+  const removeMember = async (memberId: string, memberName: string) => {
+    const confirmRemoval = window.confirm(
+      `Are you sure you want to remove ${memberName || 'this member'}? This action cannot be undone.`
+    );
+    
+    if (!confirmRemoval) return;
+    
+    setRemovingMembers(prev => new Set(prev).add(memberId));
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setRecentMembers(prev => prev.filter(member => member.id !== memberId));
+
+      toast({
+        title: "Member Removed",
+        description: `${memberName || 'Member'} has been removed successfully.`,
+      });
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove member. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRemovingMembers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(memberId);
+        return newSet;
+      });
+    }
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'approved':
@@ -323,6 +363,7 @@ const Admin = () => {
                       <th className="text-left py-2 px-3 font-medium">Email</th>
                       <th className="text-left py-2 px-3 font-medium">Role</th>
                       <th className="text-left py-2 px-3 font-medium">Joined</th>
+                      <th className="text-left py-2 px-3 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -350,6 +391,23 @@ const Admin = () => {
                           <div className="text-sm text-muted-foreground">
                             {new Date(member.created_at).toLocaleDateString()}
                           </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeMember(
+                              member.id, 
+                              member.first_name && member.last_name 
+                                ? `${member.first_name} ${member.last_name}`
+                                : member.display_name || 'Member'
+                            )}
+                            disabled={removingMembers.has(member.id) || member.is_admin}
+                            className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            {removingMembers.has(member.id) ? 'Removing...' : 'Remove'}
+                          </Button>
                         </td>
                       </tr>
                     ))}
