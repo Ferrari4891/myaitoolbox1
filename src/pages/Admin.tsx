@@ -27,6 +27,8 @@ interface Venue {
 interface RecentMember {
   id: string;
   display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   created_at: string;
   user_id: string;
   email: string | null;
@@ -108,7 +110,7 @@ const Admin = () => {
     try {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, created_at, user_id, is_admin, age_group, gender, email')
+        .select('id, display_name, first_name, last_name, created_at, user_id, is_admin, age_group, gender, email')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -330,7 +332,10 @@ const Admin = () => {
                       <tr key={member.id} className="border-b hover:bg-muted/30">
                         <td className="py-3 px-3">
                           <div className="font-medium">
-                            {member.display_name || 'Anonymous User'}
+                            {member.first_name && member.last_name 
+                              ? `${member.first_name} ${member.last_name}`
+                              : member.display_name || 'Name not provided'
+                            }
                           </div>
                         </td>
                         <td className="py-3 px-3">

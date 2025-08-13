@@ -427,9 +427,11 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          first_name: string | null
           gender: string | null
           id: string
           is_admin: boolean | null
+          last_name: string | null
           member_since: string
           preferred_language: string | null
           updated_at: string
@@ -441,9 +443,11 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          first_name?: string | null
           gender?: string | null
           id?: string
           is_admin?: boolean | null
+          last_name?: string | null
           member_since?: string
           preferred_language?: string | null
           updated_at?: string
@@ -455,9 +459,11 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          first_name?: string | null
           gender?: string | null
           id?: string
           is_admin?: boolean | null
+          last_name?: string | null
           member_since?: string
           preferred_language?: string | null
           updated_at?: string
