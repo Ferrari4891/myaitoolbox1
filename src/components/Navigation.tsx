@@ -28,7 +28,7 @@ const Navigation = () => {
               alt="Galloping Geezers Logo" 
               className="h-10 w-10 rounded-full"
             />
-            <span className="text-xl font-bold text-primary-foreground">gallopinggeezers.com</span>
+            <span className="text-xl font-bold text-primary-foreground">Galloping geezers.online</span>
           </Link>
 
           {/* Hamburger Menu Button */}
