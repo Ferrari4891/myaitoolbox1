@@ -29,7 +29,7 @@ interface RecentMember {
   display_name: string | null;
   created_at: string;
   user_id: string;
-  email?: string;
+  email: string | null;
   is_admin?: boolean;
   age_group?: string;
   gender?: string;
@@ -106,37 +106,15 @@ const Admin = () => {
 
   const fetchRecentMembers = async () => {
     try {
-      // First get profiles with additional details
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, created_at, user_id, is_admin, age_group, gender')
+        .select('id, display_name, created_at, user_id, is_admin, age_group, gender, email')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (profilesError) throw profilesError;
 
-      // Then get emails from auth.users for each user
-      const membersWithEmails: RecentMember[] = [];
-      
-      for (const profile of profilesData || []) {
-        try {
-          // Get user email from auth metadata
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profile.user_id);
-          
-          membersWithEmails.push({
-            ...profile,
-            email: userData.user?.email || 'Not available'
-          });
-        } catch (error) {
-          // If we can't get the email, still include the profile
-          membersWithEmails.push({
-            ...profile,
-            email: 'Not available'
-          });
-        }
-      }
-
-      setRecentMembers(membersWithEmails);
+      setRecentMembers(profilesData || []);
     } catch (error) {
       console.error('Error fetching recent members:', error);
     }
@@ -357,7 +335,7 @@ const Admin = () => {
                         </td>
                         <td className="py-3 px-3">
                           <div className="text-sm text-muted-foreground">
-                            {member.email || 'Not available'}
+                            {member.email || 'Not provided'}
                           </div>
                         </td>
                         <td className="py-3 px-3">
