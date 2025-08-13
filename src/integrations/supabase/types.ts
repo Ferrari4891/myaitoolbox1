@@ -614,9 +614,37 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: []
+      }
       venues: {
         Row: {
           address: string
+          average_rating: number | null
           business_name: string
           created_at: string
           description: string
@@ -626,12 +654,14 @@ export type Database = {
           image_1_url: string | null
           image_2_url: string | null
           image_3_url: string | null
+          rating_count: number | null
           status: string
           submitted_by: string | null
           updated_at: string
         }
         Insert: {
           address: string
+          average_rating?: number | null
           business_name: string
           created_at?: string
           description: string
@@ -641,12 +671,14 @@ export type Database = {
           image_1_url?: string | null
           image_2_url?: string | null
           image_3_url?: string | null
+          rating_count?: number | null
           status?: string
           submitted_by?: string | null
           updated_at?: string
         }
         Update: {
           address?: string
+          average_rating?: number | null
           business_name?: string
           created_at?: string
           description?: string
@@ -656,6 +688,7 @@ export type Database = {
           image_1_url?: string | null
           image_2_url?: string | null
           image_3_url?: string | null
+          rating_count?: number | null
           status?: string
           submitted_by?: string | null
           updated_at?: string
