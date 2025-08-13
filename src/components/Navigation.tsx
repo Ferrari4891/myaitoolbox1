@@ -39,10 +39,10 @@ const Navigation = () => {
           <Button
             variant="ghost"
             onClick={toggleMenu}
-            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-3 min-w-[60px] min-h-[60px]"
+            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-1"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="h-16 w-16" strokeWidth={4} /> : <Menu className="h-16 w-16" strokeWidth={4} />}
+            {isOpen ? <X className="h-12 w-12" strokeWidth={2} /> : <Menu className="h-12 w-12" strokeWidth={2} />}
           </Button>
         </div>
 
