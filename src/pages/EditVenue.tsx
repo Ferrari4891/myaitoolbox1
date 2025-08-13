@@ -265,8 +265,14 @@ const EditVenue = () => {
                     onChange={handleInputChange}
                     placeholder="Describe the venue"
                     className="min-h-[100px]"
+                    maxLength={300}
                     required
                   />
+                  <div className="flex justify-end">
+                    <p className="text-xs text-muted-foreground">
+                      {formData.description.length}/300 characters
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
