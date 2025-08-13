@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, ExternalLink, Check, X, Eye } from "lucide-react";
+import { MapPin, Facebook, ExternalLink, Check, X, Eye, Users } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -24,8 +24,17 @@ interface Venue {
   submitted_by?: string;
 }
 
+interface RecentMember {
+  id: string;
+  display_name: string | null;
+  created_at: string;
+  user_id: string;
+  email?: string;
+}
+
 const Admin = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [recentMembers, setRecentMembers] = useState<RecentMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingVenues, setProcessingVenues] = useState<Set<string>>(new Set());
@@ -55,6 +64,8 @@ const Admin = () => {
       if (profile?.is_admin) {
         setIsAdmin(true);
         fetchVenues();
+        fetchRecentMembers();
+        setupRealtimeSubscription();
       } else {
         toast({
           title: "Access Denied",
@@ -88,6 +99,65 @@ const Admin = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const fetchRecentMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, created_at, user_id')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setRecentMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching recent members:', error);
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    const channel = supabase
+      .channel('admin-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          const newMember = payload.new as RecentMember;
+          setRecentMembers(prev => [newMember, ...prev.slice(0, 9)]);
+          
+          toast({
+            title: "New Member Joined!",
+            description: `${newMember.display_name || 'New user'} just signed up`,
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'venues'
+        },
+        (payload) => {
+          const newVenue = payload.new as Venue;
+          setVenues(prev => [newVenue, ...prev]);
+          
+          toast({
+            title: "New Venue Submitted!",
+            description: `${newVenue.business_name} is awaiting approval`,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const updateVenueStatus = async (venueId: string, newStatus: 'approved' | 'rejected') => {
@@ -192,7 +262,7 @@ const Admin = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
@@ -217,7 +287,45 @@ const Admin = () => {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{recentMembers.length}</div>
+                <div className="text-sm text-muted-foreground">Total Members</div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Recent Members Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Recent Member Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentMembers.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No members yet</p>
+            ) : (
+              <div className="space-y-3">
+                {recentMembers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{member.display_name || 'Anonymous User'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Joined {new Date(member.created_at).toLocaleDateString()} at{' '}
+                        {new Date(member.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                    <Badge variant="outline">Member</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {venues.length === 0 ? (
           <div className="text-center py-12">
