@@ -8,6 +8,8 @@ import LoadingScreen from "@/components/LoadingScreen";
 import Index from "./pages/Index";
 import JoinNow from "./pages/JoinNow";
 import HowTo from "./pages/HowTo";
+import ApprovedVenues from "./pages/ApprovedVenues";
+import AddVenue from "./pages/AddVenue";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/join" element={<JoinNow />} />
             <Route path="/how-to" element={<HowTo />} />
+            <Route path="/approved-venues" element={<ApprovedVenues />} />
+            <Route path="/add-venue" element={<AddVenue />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

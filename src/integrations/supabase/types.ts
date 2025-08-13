@@ -614,6 +614,54 @@ export type Database = {
         }
         Relationships: []
       }
+      venues: {
+        Row: {
+          address: string
+          business_name: string
+          created_at: string
+          description: string
+          facebook_link: string | null
+          google_maps_link: string | null
+          id: string
+          image_1_url: string | null
+          image_2_url: string | null
+          image_3_url: string | null
+          status: string
+          submitted_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          business_name: string
+          created_at?: string
+          description: string
+          facebook_link?: string | null
+          google_maps_link?: string | null
+          id?: string
+          image_1_url?: string | null
+          image_2_url?: string | null
+          image_3_url?: string | null
+          status?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          business_name?: string
+          created_at?: string
+          description?: string
+          facebook_link?: string | null
+          google_maps_link?: string | null
+          id?: string
+          image_1_url?: string | null
+          image_2_url?: string | null
+          image_3_url?: string | null
+          status?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
