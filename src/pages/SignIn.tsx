@@ -14,16 +14,21 @@ const SignIn = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already signed in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Listen for auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      if (event === 'SIGNED_IN' && session) {
+        toast.success('Successfully signed in!');
+        navigate('/');
+      }
+      if (event === 'TOKEN_REFRESHED' && session) {
         navigate('/');
       }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         navigate('/');
       }
     });
