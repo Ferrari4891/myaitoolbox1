@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import StarRating from "@/components/StarRating";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Venue {
   id: string;
@@ -19,19 +21,31 @@ interface Venue {
   image_1_url?: string;
   image_2_url?: string;
   image_3_url?: string;
+  average_rating?: number;
+  rating_count?: number;
+}
+
+interface VenueRating {
+  venue_id: string;
+  rating: number;
 }
 
 const ApprovedVenues = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [userRatings, setUserRatings] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     checkAdminStatus();
     fetchVenues();
-  }, []);
+    if (isAuthenticated) {
+      fetchUserRatings();
+    }
+  }, [isAuthenticated]);
 
   const checkAdminStatus = async () => {
     try {
@@ -60,7 +74,7 @@ const ApprovedVenues = () => {
     try {
       const { data, error } = await supabase
         .from('venues')
-        .select('*')
+        .select('*, average_rating, rating_count')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
@@ -75,6 +89,35 @@ const ApprovedVenues = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserRatings = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('venue_ratings')
+        .select('venue_id, rating')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      const ratingsMap = (data || []).reduce((acc: Record<string, number>, rating: VenueRating) => {
+        acc[rating.venue_id] = rating.rating;
+        return acc;
+      }, {});
+      
+      setUserRatings(ratingsMap);
+    } catch (error) {
+      console.error('Error fetching user ratings:', error);
+    }
+  };
+
+  const handleRatingUpdate = () => {
+    fetchVenues();
+    if (isAuthenticated) {
+      fetchUserRatings();
     }
   };
 
@@ -150,8 +193,18 @@ const ApprovedVenues = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {venues.map((venue) => (
               <Card key={venue.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-bold text-card-foreground">
+                <CardHeader className="pb-4 relative">
+                  <div className="absolute top-4 right-4 z-10">
+                    <StarRating
+                      venueId={venue.id}
+                      currentRating={venue.average_rating || 0}
+                      ratingCount={venue.rating_count || 0}
+                      userRating={userRatings[venue.id]}
+                      isAuthenticated={isAuthenticated}
+                      onRatingUpdate={handleRatingUpdate}
+                    />
+                  </div>
+                  <CardTitle className="text-xl font-bold text-card-foreground pr-32">
                     {venue.business_name}
                   </CardTitle>
                 </CardHeader>
