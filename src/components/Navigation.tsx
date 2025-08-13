@@ -39,32 +39,42 @@ const Navigation = () => {
             className="text-primary-foreground hover:bg-primary/20 transition-smooth"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="h-12 w-12" /> : <Menu className="h-12 w-12" />}
+            {isOpen ? <X className="h-6 w-6" strokeWidth={3} /> : <Menu className="h-6 w-6" strokeWidth={3} />}
           </Button>
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="absolute top-16 left-0 right-0 bg-primary border-t border-primary-foreground/20 shadow-elegant">
-            <div className="px-4 py-4 space-y-3">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block w-full text-left ${
-                    item.isButton
-                      ? "bg-primary-foreground text-primary font-semibold py-3 px-4 rounded-md hover:bg-primary-foreground/90"
-                      : `text-primary-foreground hover:bg-primary/20 py-2 px-4 rounded-md ${
-                          isActive(item.path) ? "bg-primary/20 font-semibold" : ""
-                        }`
-                  } transition-smooth`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
+        {/* Mobile Menu - Slide out from left */}
+        <div 
+          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-elegant z-40 transform transition-transform duration-300 ease-in-out ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="px-4 py-6 space-y-4">
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsOpen(false)}
+                className={`block w-full text-left ${
+                  item.isButton
+                    ? "bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90"
+                    : `text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md ${
+                        isActive(item.path) ? "bg-gray-100 font-semibold" : ""
+                      }`
+                } transition-smooth`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
+        </div>
+
+        {/* Backdrop overlay */}
+        {isOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-30 top-16"
+            onClick={() => setIsOpen(false)}
+          />
         )}
       </div>
     </nav>
