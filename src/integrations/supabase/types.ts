@@ -708,6 +708,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_user_admin: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       set_admin_by_email: {
         Args: { user_email: string }
         Returns: undefined
