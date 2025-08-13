@@ -30,6 +30,9 @@ interface RecentMember {
   created_at: string;
   user_id: string;
   email?: string;
+  is_admin?: boolean;
+  age_group?: string;
+  gender?: string;
 }
 
 const Admin = () => {
@@ -103,14 +106,37 @@ const Admin = () => {
 
   const fetchRecentMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // First get profiles with additional details
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, created_at, user_id')
+        .select('id, display_name, created_at, user_id, is_admin, age_group, gender')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(50);
 
-      if (error) throw error;
-      setRecentMembers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Then get emails from auth.users for each user
+      const membersWithEmails: RecentMember[] = [];
+      
+      for (const profile of profilesData || []) {
+        try {
+          // Get user email from auth metadata
+          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profile.user_id);
+          
+          membersWithEmails.push({
+            ...profile,
+            email: userData.user?.email || 'Not available'
+          });
+        } catch (error) {
+          // If we can't get the email, still include the profile
+          membersWithEmails.push({
+            ...profile,
+            email: 'Not available'
+          });
+        }
+      }
+
+      setRecentMembers(membersWithEmails);
     } catch (error) {
       console.error('Error fetching recent members:', error);
     }
@@ -302,26 +328,62 @@ const Admin = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Recent Member Activity
+              Member Directory
             </CardTitle>
           </CardHeader>
           <CardContent>
             {recentMembers.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No members yet</p>
             ) : (
-              <div className="space-y-3">
-                {recentMembers.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{member.display_name || 'Anonymous User'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Joined {new Date(member.created_at).toLocaleDateString()} at{' '}
-                        {new Date(member.created_at).toLocaleTimeString()}
-                      </p>
-                    </div>
-                    <Badge variant="outline">Member</Badge>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3 font-medium">Name</th>
+                      <th className="text-left py-2 px-3 font-medium">Email</th>
+                      <th className="text-left py-2 px-3 font-medium">Role</th>
+                      <th className="text-left py-2 px-3 font-medium">Age Group</th>
+                      <th className="text-left py-2 px-3 font-medium">Gender</th>
+                      <th className="text-left py-2 px-3 font-medium">Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentMembers.map((member) => (
+                      <tr key={member.id} className="border-b hover:bg-muted/30">
+                        <td className="py-3 px-3">
+                          <div className="font-medium">
+                            {member.display_name || 'Anonymous User'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {member.email || 'Not available'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <Badge variant={member.is_admin ? "default" : "outline"}>
+                            {member.is_admin ? 'Admin' : 'Member'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {member.age_group || 'Not specified'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {member.gender || 'Not specified'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(member.created_at).toLocaleDateString()}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
