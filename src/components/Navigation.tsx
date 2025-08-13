@@ -38,12 +38,11 @@ const Navigation = () => {
           {/* Hamburger Menu Button */}
           <Button
             variant="ghost"
-            size="icon"
             onClick={toggleMenu}
-            className="text-primary-foreground hover:bg-primary/20 transition-smooth"
+            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-2"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="h-12 w-12" strokeWidth={3} /> : <Menu className="h-12 w-12" strokeWidth={3} />}
+            {isOpen ? <X className="h-12 w-12" strokeWidth={2} /> : <Menu className="h-12 w-12" strokeWidth={2} />}
           </Button>
         </div>
 
