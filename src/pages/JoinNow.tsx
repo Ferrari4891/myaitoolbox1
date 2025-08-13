@@ -12,6 +12,8 @@ const JoinNow = () => {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,14 +27,29 @@ const JoinNow = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate password strength
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
-        password: 'TempPassword123!', // Temporary password - users will be able to sign in with just email
+        password: formData.password,
         options: {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
+            display_name: `${formData.firstName} ${formData.lastName}`,
           },
           emailRedirectTo: `${window.location.origin}/`
         }
@@ -41,8 +58,8 @@ const JoinNow = () => {
       if (error) throw error;
 
       if (data.user) {
-        toast.success("Welcome! You can now sign in with your email address.");
-        setFormData({ firstName: "", lastName: "", email: "" });
+        toast.success("Account created successfully! You can now sign in with your email and password.");
+        setFormData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
       }
     } catch (error: any) {
       toast.error(error.message || "Something went wrong. Please try again.");
@@ -128,12 +145,44 @@ const JoinNow = () => {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-foreground font-medium">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="transition-smooth focus:ring-primary"
+                    placeholder="Choose a secure password"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-foreground font-medium">
+                    Confirm Password
+                  </Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="transition-smooth focus:ring-primary"
+                    placeholder="Confirm your password"
+                  />
+                </div>
+
                 <Button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 transition-smooth"
                 >
-                  {isSubmitting ? "Joining..." : "Join Now"}
+                  {isSubmitting ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
             </CardContent>

@@ -14,6 +14,7 @@ import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenue from "./pages/AddVenue";
 import EditVenue from "./pages/EditVenue";
 import Admin from "./pages/Admin";
+import AdminSignIn from "./pages/AdminSignIn";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/approved-venues" element={<ApprovedVenues />} />
             <Route path="/add-venue" element={<AddVenue />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/edit-venue/:id" element={<EditVenue />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

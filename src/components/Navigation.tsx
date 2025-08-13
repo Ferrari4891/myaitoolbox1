@@ -67,7 +67,6 @@ const Navigation = () => {
       ? [
           { label: "Approved Venues", path: "/approved-venues" },
           { label: "Add Venue", path: "/add-venue" },
-          { label: "Admin", path: "/admin" },
         ]
       : [
           { label: "Join Now", path: "/join", isButton: true },
@@ -130,15 +129,35 @@ const Navigation = () => {
             ))}
             
             {isAuthenticated && (
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                className="w-full justify-start text-gray-800 hover:bg-gray-100 transition-smooth"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
+              <>
+                <Link
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
+                >
+                  Admin Panel
+                </Link>
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="w-full justify-start text-gray-800 hover:bg-gray-100 transition-smooth"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
             )}
+            
+            {/* Admin Sign In - Always visible at bottom */}
+            <div className="border-t pt-4 mt-4">
+              <Link
+                to="/admin-sign-in"
+                onClick={() => setIsOpen(false)}
+                className="block w-full text-center text-sm text-gray-600 hover:text-gray-800 py-2 px-4 rounded-md transition-smooth"
+              >
+                Admin Sign In
+              </Link>
+            </div>
           </div>
         </div>
 
