@@ -1,22 +1,81 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Menu, X, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  // Clean up auth state utility
+  const cleanupAuthState = () => {
+    // Remove all Supabase auth keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    // Remove from sessionStorage if in use
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  };
+
+  const handleSignOut = async () => {
+    try {
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+        console.log('Global signout failed, continuing with cleanup');
+      }
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account."
+      });
+      
+      // Force page reload for a clean state
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const menuItems = [
     { label: "Home", path: "/" },
-    { label: "Join Now", path: "/join", isButton: true },
-    { label: "Sign In", path: "/sign-in" },
-    { label: "How To", path: "/how-to" },
-    { label: "Approved Venues", path: "/approved-venues" },
-    { label: "Add Venue", path: "/add-venue" },
-    { label: "Admin", path: "/admin" },
+    ...(isAuthenticated 
+      ? [
+          { label: "Approved Venues", path: "/approved-venues" },
+          { label: "Add Venue", path: "/add-venue" },
+          { label: "Admin", path: "/admin" },
+        ]
+      : [
+          { label: "Join Now", path: "/join", isButton: true },
+          { label: "Sign In", path: "/sign-in" },
+          { label: "How To", path: "/how-to" },
+          { label: "Approved Venues", path: "/approved-venues" },
+        ]
+    )
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -69,6 +128,17 @@ const Navigation = () => {
                 {item.label}
               </Link>
             ))}
+            
+            {isAuthenticated && (
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                className="w-full justify-start text-gray-800 hover:bg-gray-100 transition-smooth"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            )}
           </div>
         </div>
 
