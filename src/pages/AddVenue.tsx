@@ -157,7 +157,7 @@ const AddVenue = () => {
                     onChange={handleInputChange}
                     placeholder="Describe the venue in 3 lines (what makes it special, atmosphere, specialties, etc.)"
                     className="min-h-[100px]"
-                    maxLength={300}
+                    maxLength={393}
                     required
                   />
                   <div className="flex justify-between items-center">
@@ -165,7 +165,7 @@ const AddVenue = () => {
                       Keep it to about 3 lines for the best display on venue cards.
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formData.description.length}/300 characters
+                      {formData.description.length}/393 characters
                     </p>
                   </div>
                 </div>
