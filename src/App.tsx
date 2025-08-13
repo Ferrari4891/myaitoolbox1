@@ -8,6 +8,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import Index from "./pages/Index";
 import JoinNow from "./pages/JoinNow";
 import SignIn from "./pages/SignIn";
+import AuthCallback from "./pages/AuthCallback";
 import HowTo from "./pages/HowTo";
 import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenue from "./pages/AddVenue";
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/join" element={<JoinNow />} />
             <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/how-to" element={<HowTo />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
             <Route path="/add-venue" element={<AddVenue />} />
