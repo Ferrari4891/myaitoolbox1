@@ -43,7 +43,7 @@ const Navigation = () => {
             className="text-primary-foreground hover:bg-primary/20 transition-smooth"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="h-6 w-6" strokeWidth={3} /> : <Menu className="h-6 w-6" strokeWidth={3} />}
+            {isOpen ? <X className="h-8 w-8" strokeWidth={3} /> : <Menu className="h-8 w-8" strokeWidth={3} />}
           </Button>
         </div>
 
