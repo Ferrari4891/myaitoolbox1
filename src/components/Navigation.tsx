@@ -24,11 +24,11 @@ const Navigation = () => {
           {/* Logo and Site Name */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/lovable-uploads/d9226602-30e1-47f3-a5f6-aa78079398ea.png" 
-              alt="Galloping Geezers Logo" 
-              className="h-10 w-10 rounded-full"
+              src="/lovable-uploads/c6be71fd-5746-49b1-bbe4-646fad1ff624.png" 
+              alt="Gallopinggeezers Logo" 
+              className="h-12 w-12"
             />
-            <span className="text-xl font-bold text-primary-foreground">Galloping geezers.online</span>
+            <span className="text-xl font-bold text-primary-foreground">Gallopinggeezers.online</span>
           </Link>
 
           {/* Hamburger Menu Button */}
@@ -39,7 +39,7 @@ const Navigation = () => {
             className="text-primary-foreground hover:bg-primary/20 transition-smooth"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
           </Button>
         </div>
 

@@ -12,7 +12,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-xl md:text-5xl font-bold text-primary mb-6">
-              Welcome to <br className="md:hidden" />Galloping geezers.online
+              Welcome to <br className="md:hidden" />Gallopinggeezers.online
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Join fellow members in organizing and participating in amazing activities. 
