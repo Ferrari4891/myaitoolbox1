@@ -133,7 +133,7 @@ const ApprovedVenues = () => {
                   <ImageCarousel
                     images={getVenueImages(venue)}
                     alt={venue.business_name}
-                    className="w-full h-48"
+                    className="w-full"
                     autoPlay={true}
                     interval={2000}
                   />

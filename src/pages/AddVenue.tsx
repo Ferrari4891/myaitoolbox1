@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,20 @@ const AddVenue = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleImageUpload = (imageNumber: 1 | 2 | 3, url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [`image_${imageNumber}_url`]: url
+    }));
+  };
+
+  const handleImageRemove = (imageNumber: 1 | 2 | 3) => {
+    setFormData(prev => ({
+      ...prev,
+      [`image_${imageNumber}_url`]: ""
     }));
   };
 
@@ -189,51 +204,38 @@ const AddVenue = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <Label>Venue Images</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Add up to 3 images that showcase the venue. These will rotate in a carousel on the venue card.
-                  </p>
+                  <div className="space-y-2">
+                    <Label className="text-base font-medium">Venue Images</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Upload up to 3 high-quality images that showcase the venue. Images will be displayed in a 16:9 carousel on the venue card.
+                    </p>
+                  </div>
                   
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="image_1_url">Image 1 URL</Label>
-                      <Input
-                        id="image_1_url"
-                        name="image_1_url"
-                        value={formData.image_1_url}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/image1.jpg"
-                        type="url"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="image_2_url">Image 2 URL</Label>
-                      <Input
-                        id="image_2_url"
-                        name="image_2_url"
-                        value={formData.image_2_url}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/image2.jpg"
-                        type="url"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="image_3_url">Image 3 URL</Label>
-                      <Input
-                        id="image_3_url"
-                        name="image_3_url"
-                        value={formData.image_3_url}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/image3.jpg"
-                        type="url"
-                      />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <ImageUpload
+                      label="Image 1"
+                      currentImage={formData.image_1_url}
+                      onImageUploaded={(url) => handleImageUpload(1, url)}
+                      onImageRemoved={() => handleImageRemove(1)}
+                    />
+                    
+                    <ImageUpload
+                      label="Image 2"
+                      currentImage={formData.image_2_url}
+                      onImageUploaded={(url) => handleImageUpload(2, url)}
+                      onImageRemoved={() => handleImageRemove(2)}
+                    />
+                    
+                    <ImageUpload
+                      label="Image 3"
+                      currentImage={formData.image_3_url}
+                      onImageUploaded={(url) => handleImageUpload(3, url)}
+                      onImageRemoved={() => handleImageRemove(3)}
+                    />
                   </div>
                   
                   <p className="text-xs text-muted-foreground">
-                    If no images are provided, default showcase images will be used.
+                    If no images are uploaded, default showcase images will be used. Supported formats: JPG, PNG, GIF (max 5MB each)
                   </p>
                 </div>
 

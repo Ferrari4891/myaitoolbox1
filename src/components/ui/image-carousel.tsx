@@ -34,7 +34,7 @@ export function ImageCarousel({
   if (!images || images.length === 0) {
     return (
       <div className={cn(
-        "w-full h-64 bg-muted rounded-lg flex items-center justify-center",
+        "w-full aspect-video bg-muted rounded-lg flex items-center justify-center",
         className
       )}>
         <span className="text-muted-foreground">No images available</span>
@@ -43,7 +43,7 @@ export function ImageCarousel({
   }
 
   return (
-    <div className={cn("relative w-full h-64 rounded-lg overflow-hidden", className)}>
+    <div className={cn("relative w-full aspect-video rounded-lg overflow-hidden", className)}>
       <img
         src={images[currentIndex]}
         alt={`${alt} - Image ${currentIndex + 1}`}
