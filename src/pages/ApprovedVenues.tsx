@@ -166,7 +166,7 @@ const ApprovedVenues = () => {
                   />
                   
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <p className="text-sm text-muted-foreground">
                       {venue.description}
                     </p>
                   </div>
