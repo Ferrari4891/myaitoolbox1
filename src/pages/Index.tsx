@@ -11,7 +11,9 @@ const Index = () => {
       <main className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-6">Welcome to G</h2>
+            <h2 className="text-xl md:text-5xl font-bold text-primary mb-6">
+              Welcome to <br className="md:hidden" />Gallopinggeezers.com
+            </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Join fellow members in organizing and participating in amazing activities. 
               From coffee meetups to lunch gatherings and dinner experiences - 
@@ -22,7 +24,7 @@ const Index = () => {
           <div className="text-center">
             <Link to="/join">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg transition-smooth shadow-elegant">
-                Join Our Community
+                Become a Geezer
               </Button>
             </Link>
           </div>
