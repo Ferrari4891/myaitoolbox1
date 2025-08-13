@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
 import Index from "./pages/Index";
 import JoinNow from "./pages/JoinNow";
+import SignIn from "./pages/SignIn";
 import HowTo from "./pages/HowTo";
 import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenue from "./pages/AddVenue";
@@ -27,6 +28,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/join" element={<JoinNow />} />
+            <Route path="/sign-in" element={<SignIn />} />
             <Route path="/how-to" element={<HowTo />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
             <Route path="/add-venue" element={<AddVenue />} />

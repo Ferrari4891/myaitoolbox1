@@ -12,6 +12,7 @@ const Navigation = () => {
   const menuItems = [
     { label: "Home", path: "/" },
     { label: "Join Now", path: "/join", isButton: true },
+    { label: "Sign In", path: "/sign-in" },
     { label: "How To", path: "/how-to" },
     { label: "Approved Venues", path: "/approved-venues" },
     { label: "Add Venue", path: "/add-venue" },

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 
 const JoinNow = () => {
@@ -24,12 +25,30 @@ const JoinNow = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("Thanks for joining! We'll be in touch soon.");
-    setFormData({ firstName: "", lastName: "", email: "" });
-    setIsSubmitting(false);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: 'TempPassword123!', // Temporary password - users will be able to sign in with just email
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast.success("Welcome! You can now sign in with your email address.");
+        setFormData({ firstName: "", lastName: "", email: "" });
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
