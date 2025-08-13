@@ -322,8 +322,6 @@ const Admin = () => {
                       <th className="text-left py-2 px-3 font-medium">Name</th>
                       <th className="text-left py-2 px-3 font-medium">Email</th>
                       <th className="text-left py-2 px-3 font-medium">Role</th>
-                      <th className="text-left py-2 px-3 font-medium">Age Group</th>
-                      <th className="text-left py-2 px-3 font-medium">Gender</th>
                       <th className="text-left py-2 px-3 font-medium">Joined</th>
                     </tr>
                   </thead>
@@ -347,16 +345,6 @@ const Admin = () => {
                           <Badge variant={member.is_admin ? "default" : "outline"}>
                             {member.is_admin ? 'Admin' : 'Member'}
                           </Badge>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            {member.age_group || 'Not specified'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            {member.gender || 'Not specified'}
-                          </div>
                         </td>
                         <td className="py-3 px-3">
                           <div className="text-sm text-muted-foreground">
