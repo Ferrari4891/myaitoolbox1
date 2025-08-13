@@ -21,13 +21,14 @@ const Navigation = () => {
     <nav className="bg-primary shadow-elegant relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          {/* Logo and Site Name */}
+          <Link to="/" className="flex items-center space-x-3">
             <img 
               src="/lovable-uploads/d9226602-30e1-47f3-a5f6-aa78079398ea.png" 
               alt="Galloping Geezers Logo" 
-              className="h-12 w-12 rounded-full"
+              className="h-10 w-10 rounded-full"
             />
+            <span className="text-xl font-bold text-primary-foreground">gallopinggeezers.com</span>
           </Link>
 
           {/* Hamburger Menu Button */}

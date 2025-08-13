@@ -6,7 +6,7 @@ const Index = () => {
   return <div className="min-h-screen bg-background">
       <Navigation />
       
-      <HeroSection backgroundImage="/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png" title="gallopinggeezers.com" height="h-96 md:h-screen" />
+      <HeroSection backgroundImage="/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png" title="" height="h-96 md:h-screen" />
 
       <main className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
