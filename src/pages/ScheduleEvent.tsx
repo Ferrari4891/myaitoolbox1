@@ -106,7 +106,7 @@ const ScheduleEvent = () => {
       const proposedDate = new Date(data.eventDate);
       proposedDate.setHours(parseInt(hours), parseInt(minutes));
 
-      // Create group invitation
+      // Create group invitation with pending status (no longer auto-sends emails)
       const { data: invitation, error: invitationError } = await supabase
         .from("group_invitations")
         .insert({
@@ -116,41 +116,17 @@ const ScheduleEvent = () => {
           proposed_date: proposedDate.toISOString(),
           rsvp_deadline: data.rsvpDeadline.toISOString(),
           custom_message: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,
+          approval_status: 'pending'
         })
         .select()
         .single();
 
       if (invitationError) throw invitationError;
 
-      // Send invitation emails
-      const { error: emailError } = await supabase.functions.invoke("send-event-invitations", {
-        body: {
-          invitationId: invitation.id,
-          eventDetails: {
-            eventType: data.eventType,
-            memberName: data.memberName,
-            venue: venues.find(v => v.id === data.venueId),
-            proposedDate: proposedDate.toISOString(),
-            rsvpDeadline: data.rsvpDeadline.toISOString(),
-            customMessage: data.customMessage,
-            inviteToken: invitation.invite_token,
-          },
-        },
+      toast({
+        title: "Event submitted successfully!",
+        description: "Your event has been submitted for admin approval. You'll be notified once it's approved and invitations are sent.",
       });
-
-      if (emailError) {
-        console.error("Email sending failed:", emailError);
-        toast({
-          title: "Event scheduled, but email failed",
-          description: "Your event was created but we couldn't send invitations. Please notify members manually.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Event scheduled successfully!",
-          description: "Invitations have been sent to all members.",
-        });
-      }
 
       // Reset form
       form.reset();

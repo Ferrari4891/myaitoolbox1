@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, ExternalLink, Check, X, Eye, Users, Trash2 } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -304,7 +304,7 @@ const Admin = () => {
             Admin Panel
           </h1>
           <p className="text-lg text-muted-foreground">
-            Manage venue submissions and approvals
+            Manage venue submissions and event approvals
           </p>
         </div>
 
@@ -313,7 +313,7 @@ const Admin = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">{pendingVenues.length}</div>
-                <div className="text-sm text-muted-foreground">Pending</div>
+                <div className="text-sm text-muted-foreground">Pending Venues</div>
               </div>
             </CardContent>
           </Card>
@@ -321,7 +321,7 @@ const Admin = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{approvedVenues.length}</div>
-                <div className="text-sm text-muted-foreground">Approved</div>
+                <div className="text-sm text-muted-foreground">Approved Venues</div>
               </div>
             </CardContent>
           </Card>
@@ -329,15 +329,25 @@ const Admin = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">{rejectedVenues.length}</div>
-                <div className="text-sm text-muted-foreground">Rejected</div>
+                <div className="text-sm text-muted-foreground">Rejected Venues</div>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{recentMembers.length}</div>
-                <div className="text-sm text-muted-foreground">Total Members</div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xl font-bold text-blue-600">Events</div>
+                  <div className="text-xs text-muted-foreground">Manage Events</div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/event-management')}
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  View
+                </Button>
               </div>
             </CardContent>
           </Card>

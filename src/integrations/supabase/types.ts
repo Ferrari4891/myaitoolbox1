@@ -328,6 +328,7 @@ export type Database = {
       }
       group_invitations: {
         Row: {
+          approval_status: string
           created_at: string
           creator_id: string
           custom_message: string | null
@@ -341,6 +342,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_status?: string
           created_at?: string
           creator_id: string
           custom_message?: string | null
@@ -354,6 +356,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_status?: string
           created_at?: string
           creator_id?: string
           custom_message?: string | null
