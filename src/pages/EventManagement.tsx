@@ -76,7 +76,7 @@ export default function EventManagement() {
           approval_status,
           created_at,
           creator_id,
-          saved_restaurant_id
+          venue_id
         `)
         .order("created_at", { ascending: false });
 
@@ -90,7 +90,7 @@ export default function EventManagement() {
         const { data: venueData } = await supabase
           .from("venues")
           .select("business_name, address")
-          .eq("id", event.saved_restaurant_id)
+          .eq("id", event.venue_id)
           .single();
           
         // Fetch creator info

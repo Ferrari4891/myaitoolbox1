@@ -112,7 +112,7 @@ const ScheduleEvent = () => {
         .insert({
           creator_id: user.id,
           group_name: `${data.eventType} at ${venues.find(v => v.id === data.venueId)?.business_name}`,
-          saved_restaurant_id: data.venueId,
+          venue_id: data.venueId,
           proposed_date: proposedDate.toISOString(),
           rsvp_deadline: data.rsvpDeadline.toISOString(),
           custom_message: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,

@@ -337,9 +337,9 @@ export type Database = {
           invite_token: string
           proposed_date: string
           rsvp_deadline: string
-          saved_restaurant_id: string
           status: string
           updated_at: string
+          venue_id: string
         }
         Insert: {
           approval_status?: string
@@ -351,9 +351,9 @@ export type Database = {
           invite_token?: string
           proposed_date: string
           rsvp_deadline: string
-          saved_restaurant_id: string
           status?: string
           updated_at?: string
+          venue_id: string
         }
         Update: {
           approval_status?: string
@@ -365,16 +365,16 @@ export type Database = {
           invite_token?: string
           proposed_date?: string
           rsvp_deadline?: string
-          saved_restaurant_id?: string
           status?: string
           updated_at?: string
+          venue_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_saved_restaurant"
-            columns: ["saved_restaurant_id"]
+            foreignKeyName: "fk_venue"
+            columns: ["venue_id"]
             isOneToOne: false
-            referencedRelation: "saved_restaurants"
+            referencedRelation: "venues"
             referencedColumns: ["id"]
           },
         ]
