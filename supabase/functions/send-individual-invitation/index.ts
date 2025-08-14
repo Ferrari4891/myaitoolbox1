@@ -19,9 +19,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set');
+    }
+    
+    const resend = new Resend(resendApiKey);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase environment variables are not set');
+    }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -177,7 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email
-    const { error: emailError } = await resend.emails.send({
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'Galloping Geezers <onboarding@resend.dev>',
       to: [recipientEmail],
       subject: emailSubject,
@@ -185,7 +194,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailError) {
-      throw new Error(`Failed to send email: ${emailError.message}`);
+      console.error('Resend API error:', emailError);
+      throw new Error(`Failed to send email: ${emailError.message || JSON.stringify(emailError)}`);
     }
 
     console.log(`Individual invitation sent successfully to ${recipientEmail} for event ${invitationId}`);
