@@ -92,17 +92,30 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      const intent = `intent://open#Intent;scheme=grab;package=com.grabtaxi.passenger;S.destination=${destination};end`;
+      // Try multiple Grab deep link formats for better compatibility
+      const grabScheme = `grab://open?destination=${destination}`;
+      const grabHttp = `https://grab.com/open?destination=${destination}`;
+      const intent = `intent://open?destination=${destination}#Intent;scheme=grab;package=com.grabtaxi.passenger;S.browser_fallback_url=${encodeURIComponent(grabHttp)};end`;
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      window.location.href = intent;
+      // First try the grab:// scheme
+      window.location.href = grabScheme;
       
-      // Fallback to Play Store if app not installed
+      // Longer timeout and more robust fallback detection
       setTimeout(() => {
-        if (document.visibilityState === "visible") {
-          window.location.href = playStore;
+        // Check if we're still on the same page (app didn't open)
+        if (document.hasFocus() && document.visibilityState === "visible") {
+          // Try the intent method
+          window.location.href = intent;
+          
+          // Final fallback to Play Store
+          setTimeout(() => {
+            if (document.hasFocus() && document.visibilityState === "visible") {
+              window.location.href = playStore;
+            }
+          }, 1500);
         }
-      }, 1200);
+      }, 2000);
       return;
     }
 
