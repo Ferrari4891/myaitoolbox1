@@ -343,14 +343,28 @@ const Admin = () => {
     setRemovingMembers(prev => new Set(prev).add(memberId));
     
     try {
+      console.log('Attempting to remove member:', { memberId, memberName });
+      
       const { error } = await supabase
         .from('profiles')
         .delete()
         .eq('id', memberId);
 
-      if (error) throw error;
+      console.log('Delete result:', { error });
 
-      setRecentMembers(prev => prev.filter(member => member.id !== memberId));
+      if (error) {
+        console.error('Database error during deletion:', error);
+        throw error;
+      }
+
+      console.log('Successfully deleted member from database');
+      
+      // Update local state
+      setRecentMembers(prev => {
+        const updated = prev.filter(member => member.id !== memberId);
+        console.log('Updated members list:', updated.length, 'members remaining');
+        return updated;
+      });
 
       toast({
         title: "Member Removed",
