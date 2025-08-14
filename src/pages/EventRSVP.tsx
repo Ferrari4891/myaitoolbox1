@@ -73,21 +73,55 @@ const EventRSVP = () => {
 
     const fetchEventDetails = async () => {
       try {
+        console.log("Fetching event with token:", token);
+        
         const { data: invitation, error } = await supabase
           .from("group_invitations")
           .select(`
-            *,
-            venues!group_invitations_venue_id_fkey (
-              business_name,
-              address
-            )
+            id,
+            group_name,
+            proposed_date,
+            rsvp_deadline,
+            custom_message,
+            approval_status,
+            status,
+            venue_id
           `)
           .eq("invite_token", token)
-          .eq("approval_status", "approved")
-          .eq("status", "active")
           .maybeSingle();
 
-        if (error) throw error;
+        console.log("Invitation query result:", { invitation, error });
+
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        if (!invitation) {
+          console.log("No invitation found for token:", token);
+          toast({
+            title: "Event Not Found",
+            description: "This invitation link is invalid or the event has been cancelled.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Check if event is approved and active
+        if (invitation.approval_status !== "approved" || invitation.status !== "active") {
+          console.log("Event not approved or not active:", { 
+            approval_status: invitation.approval_status, 
+            status: invitation.status 
+          });
+          toast({
+            title: "Event Not Available",
+            description: "This event is not currently available for RSVP.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
 
         // Check if RSVP deadline has passed
         if (new Date(invitation.rsvp_deadline) < new Date()) {
@@ -100,9 +134,22 @@ const EventRSVP = () => {
           return;
         }
 
+        // Get venue details separately
+        const { data: venue, error: venueError } = await supabase
+          .from("venues")
+          .select("business_name, address")
+          .eq("id", invitation.venue_id)
+          .maybeSingle();
+
+        console.log("Venue query result:", { venue, venueError });
+
+        if (venueError) {
+          console.error("Venue fetch error:", venueError);
+        }
+
         setEventDetails({
           ...invitation,
-          venue: Array.isArray(invitation.venues) ? invitation.venues[0] : invitation.venues,
+          venue: venue || undefined,
         });
       } catch (error) {
         console.error("Error fetching event details:", error);
