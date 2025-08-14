@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminSignIn = () => {
@@ -118,7 +118,6 @@ const AdminSignIn = () => {
   if (isCheckingAdmin) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -133,8 +132,6 @@ const AdminSignIn = () => {
   if (isAuthenticated && user) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
-        
         <header className="bg-primary py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
@@ -180,8 +177,6 @@ const AdminSignIn = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
       <header className="bg-primary py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">

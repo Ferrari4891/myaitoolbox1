@@ -8,7 +8,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+
 
 const AddVenue = () => {
   const [formData, setFormData] = useState({
@@ -117,8 +117,6 @@ const AddVenue = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">

@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import Navigation from "@/components/Navigation";
+
 
 const rsvpSchema = z.object({
   inviteeEmail: z.string().email("Please enter a valid email address"),
@@ -156,7 +156,6 @@ const EventRSVP = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-primary">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-md mx-auto">
             <Card>
@@ -173,7 +172,6 @@ const EventRSVP = () => {
   if (!eventDetails) {
     return (
       <div className="min-h-screen bg-gradient-primary">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
             <CardContent className="p-6 text-center">
@@ -192,7 +190,6 @@ const EventRSVP = () => {
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-primary">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
             <CardContent className="p-6 text-center">
@@ -210,7 +207,6 @@ const EventRSVP = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary">
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Event Details Card */}

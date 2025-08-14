@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import Navigation from "@/components/Navigation";
+
 
 const eventSchema = z.object({
   memberName: z.string().min(2, "Member name must be at least 2 characters"),
@@ -145,7 +145,6 @@ const ScheduleEvent = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-primary">
-        <Navigation />
         <div className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
             <CardContent className="p-6 text-center">
@@ -165,7 +164,6 @@ const ScheduleEvent = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary">
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <Card>
