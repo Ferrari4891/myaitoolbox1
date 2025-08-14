@@ -78,6 +78,7 @@ export default function EventManagement() {
           creator_id,
           venue_id
         `)
+        .eq("approval_status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -138,7 +139,10 @@ export default function EventManagement() {
       // Update event status
       const { error: updateError } = await supabase
         .from("group_invitations")
-        .update({ approval_status: status })
+        .update({ 
+          approval_status: status,
+          status: status === 'approved' ? 'active' : 'rejected'
+        })
         .eq("id", eventId);
 
       if (updateError) throw updateError;
@@ -178,9 +182,31 @@ export default function EventManagement() {
           }
         }
       } else {
+        // Send rejection notification to event creator
+        const event = events.find(e => e.id === eventId);
+        if (event) {
+          const { error: emailError } = await supabase.functions.invoke('send-event-rejection', {
+            body: {
+              eventId: eventId,
+              eventDetails: {
+                eventType: event.group_name.includes('Coffee') ? 'Coffee' : 
+                           event.group_name.includes('Lunch') ? 'Lunch' : 'Dinner',
+                memberName: event.creator.display_name,
+                venue: event.venue,
+                proposedDate: event.proposed_date,
+                creatorId: event.creator_id
+              }
+            }
+          });
+
+          if (emailError) {
+            console.error("Rejection email failed:", emailError);
+          }
+        }
+        
         toast({
           title: "Event rejected",
-          description: "The event has been rejected.",
+          description: "The event has been rejected and creator notified.",
         });
       }
 
