@@ -7,20 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface EventInvitationRequest {
+interface RequestBody {
   invitationId: string;
-  eventDetails: {
-    eventType: string;
-    memberName: string;
-    venue: {
-      business_name: string;
-      address: string;
-    };
-    proposedDate: string;
-    rsvpDeadline: string;
-    customMessage?: string;
-    inviteToken: string;
-  };
+  isUpdate?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -36,7 +25,37 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { invitationId, eventDetails }: EventInvitationRequest = await req.json();
+    const { invitationId, isUpdate = false }: RequestBody = await req.json();
+
+    // Get invitation details from database
+    const { data: invitation, error: invitationError } = await supabase
+      .from('group_invitations')
+      .select(`
+        id,
+        group_name,
+        proposed_date,
+        rsvp_deadline,
+        custom_message,
+        invite_token,
+        venue_id,
+        creator_id
+      `)
+      .eq('id', invitationId)
+      .single();
+
+    if (invitationError) {
+      throw new Error(`Failed to fetch invitation: ${invitationError.message}`);
+    }
+
+    // Get venue details
+    const { data: venues, error: venueError } = await supabase
+      .from('venues')
+      .select('business_name, address, average_rating')
+      .eq('id', invitation.venue_id);
+
+    if (venueError || !venues || venues.length === 0) {
+      throw new Error(`Failed to fetch venue details: ${venueError?.message || 'Venue not found'}`);
+    }
 
     // Get all member emails from profiles
     const { data: profiles, error: profilesError } = await supabase
@@ -61,8 +80,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Format the event date and time
-    const eventDate = new Date(eventDetails.proposedDate);
-    const rsvpDate = new Date(eventDetails.rsvpDeadline);
+    const eventDate = new Date(invitation.proposed_date);
+    const rsvpDate = new Date(invitation.rsvp_deadline);
     
     const formatDate = (date: Date) => {
       return date.toLocaleDateString('en-US', {
@@ -82,10 +101,10 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     // Create RSVP URL - point to the actual application
-    const rsvpUrl = `https://fd4c5f74-86bb-4f7e-bc3d-7c635105148c.lovableproject.com/event-rsvp?token=${eventDetails.inviteToken}`;
+    const rsvpUrl = `https://fd4c5f74-86bb-4f7e-bc3d-7c635105148c.lovableproject.com/event-rsvp?token=${invitation.invite_token}`;
 
     // Create email content
-    const emailSubject = `🎉 You're Invited: ${eventDetails.eventType} at ${eventDetails.venue.business_name}`;
+    const emailSubject = isUpdate ? `📝 Event Updated: ${invitation.group_name}` : `🎉 You're Invited: ${invitation.group_name}`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -102,13 +121,20 @@ const handler = async (req: Request): Promise<Response> => {
                    alt="Galloping Geezers Logo" 
                    style="max-width: 120px; height: auto; display: inline-block;">
             </div>
-            <h1 style="color: white; margin: 0; font-size: 28px;">🎉 You're Invited!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">${isUpdate ? '📝 Event Updated!' : '🎉 You\'re Invited!'}</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">Galloping Geezers Community Event</p>
           </div>
           
+          ${isUpdate ? `
+          <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 25px; margin-bottom: 25px;">
+            <h3 style="color: #856404; margin-top: 0;">⚠️ Important Update</h3>
+            <p style="color: #856404; margin-bottom: 0;">This event has been updated. Please review the details below and confirm your attendance again if needed.</p>
+          </div>
+          ` : ''}
+          
           <div style="background: #f8f9fa; border-radius: 10px; padding: 25px; margin-bottom: 25px;">
             <h2 style="color: #333; margin-top: 0; display: flex; align-items: center;">
-              ${eventDetails.eventType === 'Coffee' ? '☕' : eventDetails.eventType === 'Lunch' ? '🍽️' : '🍽️'} ${eventDetails.eventType} Event
+              🍽️ ${invitation.group_name}
             </h2>
             
             <div style="display: grid; gap: 15px;">
@@ -124,31 +150,27 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-weight: bold; color: #667eea;">📍 Venue:</span>
-                <span>${eventDetails.venue.business_name}</span>
+                <span>${venues[0].business_name}</span>
               </div>
               
               <div style="padding-left: 25px; color: #666; font-size: 14px;">
-                ${eventDetails.venue.address}
+                ${venues[0].address}
               </div>
-              
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-weight: bold; color: #667eea;">👤 Organized by:</span>
-                <span>${eventDetails.memberName}</span>
-              </div>
+              ${venues[0].average_rating ? `<div style="padding-left: 25px; color: #666; font-size: 14px;">⭐ Rating: ${Number(venues[0].average_rating).toFixed(1)}/5</div>` : ''}
             </div>
           </div>
           
-          ${eventDetails.customMessage ? `
+          ${invitation.custom_message ? `
             <div style="background: #e8f4fd; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 25px; border-radius: 5px;">
-              <h3 style="margin-top: 0; color: #333;">Message from ${eventDetails.memberName}:</h3>
-              <p style="margin-bottom: 0; font-style: italic;">"${eventDetails.customMessage}"</p>
+              <h3 style="margin-top: 0; color: #333;">Message from organizer:</h3>
+              <p style="margin-bottom: 0; font-style: italic;">"${invitation.custom_message}"</p>
             </div>
           ` : ''}
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${rsvpUrl}" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-              🎯 RSVP Now
+              ${isUpdate ? '📝 Update RSVP' : '🎯 RSVP Now'}
             </a>
           </div>
           

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
+import { EditEventDialog } from "@/components/EditEventDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +66,8 @@ const Admin = () => {
   const [processingVenues, setProcessingVenues] = useState<Set<string>>(new Set());
   const [removingMembers, setRemovingMembers] = useState<Set<string>>(new Set());
   const [processingEvents, setProcessingEvents] = useState<Set<string>>(new Set());
+  const [editingEvent, setEditingEvent] = useState<EventWithVenue | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -578,6 +581,20 @@ const Admin = () => {
     }
   };
 
+  const handleEditEvent = (event: EventWithVenue) => {
+    setEditingEvent(event);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setIsEditDialogOpen(false);
+    setEditingEvent(null);
+  };
+
+  const handleEventUpdated = () => {
+    fetchEvents();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -691,79 +708,90 @@ const Admin = () => {
                             RSVP: {new Date(event.rsvp_deadline).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className="py-3 px-3">
+                         <td className="py-3 px-3">
                           {getEventStatusBadge(event.approval_status, event.status)}
-                        </td>
-                        <td className="py-3 px-3">
-                          {event.approval_status === 'pending' && (
-                            <div className="flex gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventApproval(event.id, 'approved')}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventApproval(event.id, 'rejected')}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                          {event.approval_status !== 'pending' && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-muted-foreground">
-                                {event.approval_status === 'approved' ? 'Approved' : 'Rejected'}
-                              </span>
-                              {event.approval_status === 'approved' && event.status !== 'cancelled' && (
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEventCancellation(event.id)}
-                                    disabled={processingEvents.has(event.id)}
-                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                    title="Cancel event"
-                                  >
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEventRemoval(event.id)}
-                                    disabled={processingEvents.has(event.id)}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    title="Remove event permanently"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                              {event.status === 'cancelled' && (
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="destructive">Cancelled</Badge>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEventRemoval(event.id)}
-                                    disabled={processingEvents.has(event.id)}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    title="Remove event permanently"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </td>
+                         </td>
+                         <td className="py-3 px-3">
+                           <div className="flex gap-1">
+                             {/* Edit button for all events */}
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => handleEditEvent(event)}
+                               disabled={processingEvents.has(event.id)}
+                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                               title="Edit event"
+                             >
+                               <Edit className="h-4 w-4" />
+                             </Button>
+
+                             {/* Approval buttons for pending events */}
+                             {event.approval_status === 'pending' && (
+                               <>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleEventApproval(event.id, 'approved')}
+                                   disabled={processingEvents.has(event.id)}
+                                   className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                   title="Approve event"
+                                 >
+                                   <CheckCircle className="h-4 w-4" />
+                                 </Button>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleEventApproval(event.id, 'rejected')}
+                                   disabled={processingEvents.has(event.id)}
+                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                   title="Reject event"
+                                 >
+                                   <XCircle className="h-4 w-4" />
+                                 </Button>
+                               </>
+                             )}
+
+                             {/* Management buttons for approved events */}
+                             {event.approval_status === 'approved' && event.status !== 'cancelled' && (
+                               <>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleEventCancellation(event.id)}
+                                   disabled={processingEvents.has(event.id)}
+                                   className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                   title="Cancel event"
+                                 >
+                                   <Settings className="h-4 w-4" />
+                                 </Button>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleEventRemoval(event.id)}
+                                   disabled={processingEvents.has(event.id)}
+                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                   title="Remove event permanently"
+                                 >
+                                   <Trash2 className="h-4 w-4" />
+                                 </Button>
+                               </>
+                             )}
+
+                             {/* Remove button for cancelled events */}
+                             {event.status === 'cancelled' && (
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => handleEventRemoval(event.id)}
+                                 disabled={processingEvents.has(event.id)}
+                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                 title="Remove event permanently"
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             )}
+                           </div>
+                         </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1005,6 +1033,13 @@ const Admin = () => {
             )}
           </div>
         )}
+
+        <EditEventDialog
+          event={editingEvent}
+          isOpen={isEditDialogOpen}
+          onClose={handleEditDialogClose}
+          onEventUpdated={handleEventUpdated}
+        />
       </main>
     </div>
   );
