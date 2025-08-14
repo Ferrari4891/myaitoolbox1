@@ -10,6 +10,7 @@ const corsHeaders = {
 interface RequestBody {
   invitationId: string;
   isUpdate?: boolean;
+  recipientEmail?: string; // For individual resending
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { invitationId, isUpdate = false }: RequestBody = await req.json();
+    const { invitationId, isUpdate = false, recipientEmail }: RequestBody = await req.json();
 
     // Get invitation details from database
     const { data: invitation, error: invitationError } = await supabase
@@ -57,26 +58,38 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to fetch venue details: ${venueError?.message || 'Venue not found'}`);
     }
 
-    // Get all member emails from profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('email')
-      .not('email', 'is', null);
+    // Get member emails from profiles
+    let memberEmails: string[];
+    
+    if (recipientEmail) {
+      // Individual resend - validate email and use single recipient
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(recipientEmail)) {
+        throw new Error('Invalid email format');
+      }
+      memberEmails = [recipientEmail];
+    } else {
+      // Bulk send - get all member emails
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('email')
+        .not('email', 'is', null);
 
-    if (profilesError) {
-      throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
-    }
+      if (profilesError) {
+        throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
+      }
 
-    if (!profiles || profiles.length === 0) {
-      throw new Error('No member emails found');
-    }
+      if (!profiles || profiles.length === 0) {
+        throw new Error('No member emails found');
+      }
 
-    const memberEmails = profiles
-      .map(p => p.email)
-      .filter(email => email && email.trim() !== '');
+      memberEmails = profiles
+        .map(p => p.email)
+        .filter(email => email && email.trim() !== '');
 
-    if (memberEmails.length === 0) {
-      throw new Error('No valid member emails found');
+      if (memberEmails.length === 0) {
+        throw new Error('No valid member emails found');
+      }
     }
 
     // Format the event date and time
@@ -240,7 +253,9 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Invitations sent to ${successCount} members`,
+        message: recipientEmail 
+          ? `Invitation sent to ${recipientEmail}` 
+          : `Invitations sent to ${successCount} members`,
         details: {
           successful: successCount,
           failed: failureCount,

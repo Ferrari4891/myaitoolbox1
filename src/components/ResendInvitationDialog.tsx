@@ -51,7 +51,7 @@ export const ResendInvitationDialog = ({ event, isOpen, onClose }: ResendInvitat
     
     setIsLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-individual-invitation', {
+      const { error } = await supabase.functions.invoke('send-event-invitations', {
         body: {
           invitationId: event.id,
           recipientEmail: email.trim()
