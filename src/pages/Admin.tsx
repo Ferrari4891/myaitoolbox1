@@ -334,39 +334,46 @@ const Admin = () => {
   };
 
   const removeMember = async (memberId: string, memberName: string) => {
-    console.log('REMOVE MEMBER FUNCTION CALLED!', { memberId, memberName });
-    
     const confirmRemoval = window.confirm(
       `Are you sure you want to remove ${memberName || 'this member'}? This action cannot be undone.`
     );
-    
-    console.log('User confirmed removal:', confirmRemoval);
     
     if (!confirmRemoval) return;
     
     setRemovingMembers(prev => new Set(prev).add(memberId));
     
     try {
-      console.log('Attempting to remove member:', { memberId, memberName });
-      
-      const { error } = await supabase
+      // Get member email to delete all profiles with same email
+      const { data: memberToDelete } = await supabase
         .from('profiles')
-        .delete()
-        .eq('id', memberId);
-
-      console.log('Delete result:', { error });
-
-      if (error) {
-        console.error('Database error during deletion:', error);
-        throw error;
-      }
-
-      console.log('Successfully deleted member from database');
+        .select('email')
+        .eq('id', memberId)
+        .single();
       
-      // Update local state
+      if (memberToDelete?.email) {
+        // Delete all profiles with the same email
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('email', memberToDelete.email);
+        
+        if (error) throw error;
+      } else {
+        // Fallback to just deleting by ID
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', memberId);
+        
+        if (error) throw error;
+      }
+      
+      // Update local state - remove all members with same email
       setRecentMembers(prev => {
-        const updated = prev.filter(member => member.id !== memberId);
-        console.log('Updated members list:', updated.length, 'members remaining');
+        const memberEmail = memberToDelete?.email;
+        const updated = memberEmail 
+          ? prev.filter(member => member.email !== memberEmail)
+          : prev.filter(member => member.id !== memberId);
         return updated;
       });
 
