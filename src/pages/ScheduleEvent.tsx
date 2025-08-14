@@ -196,7 +196,7 @@ const ScheduleEvent = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Calendar className="h-6 w-6" />
-                Schedule Community Event
+                CREATE A GEEZER EVENT
               </CardTitle>
               <CardDescription>
                 Create a Coffee, Lunch, or Dinner event for the Galloping Geezers community
