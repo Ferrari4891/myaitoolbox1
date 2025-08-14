@@ -238,23 +238,24 @@ const Admin = () => {
   const setupRealtimeSubscription = () => {
     const channel = supabase
       .channel('admin-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          const newMember = payload.new as RecentMember;
-          setRecentMembers(prev => [newMember, ...prev.slice(0, 9)]);
-          
-          toast({
-            title: "New Member Joined!",
-            description: `${newMember.display_name || 'New user'} just signed up`,
-          });
-        }
-      )
+      // Temporarily disable new member notifications to prevent deleted users from reappearing
+      // .on(
+      //   'postgres_changes',
+      //   {
+      //     event: 'INSERT',
+      //     schema: 'public',
+      //     table: 'profiles'
+      //   },
+      //   (payload) => {
+      //     const newMember = payload.new as RecentMember;
+      //     setRecentMembers(prev => [newMember, ...prev.slice(0, 9)]);
+      //     
+      //     toast({
+      //       title: "New Member Joined!",
+      //       description: `${newMember.display_name || 'New user'} just signed up`,
+      //     });
+      //   }
+      // )
       .on(
         'postgres_changes',
         {
