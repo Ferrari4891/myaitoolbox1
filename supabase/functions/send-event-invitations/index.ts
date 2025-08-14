@@ -171,8 +171,15 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send emails to all members
-    const emailPromises = memberEmails.map(async (email) => {
+    // Add delay function to prevent rate limiting (Resend free tier: 2 emails/second)
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Send emails with rate limiting - process sequentially with delays
+    const results = [];
+    console.log(`Starting to send emails to ${memberEmails.length} members...`);
+    
+    for (let i = 0; i < memberEmails.length; i++) {
+      const email = memberEmails[i];
       try {
         const { error } = await resend.emails.send({
           from: 'Galloping Geezers <onboarding@resend.dev>',
@@ -183,17 +190,21 @@ const handler = async (req: Request): Promise<Response> => {
 
         if (error) {
           console.error(`Failed to send email to ${email}:`, error);
-          return { email, success: false, error: error.message };
+          results.push({ email, success: false, error: error.message });
+        } else {
+          console.log(`Email sent successfully to ${email}`);
+          results.push({ email, success: true });
         }
-
-        return { email, success: true };
       } catch (error) {
         console.error(`Error sending email to ${email}:`, error);
-        return { email, success: false, error: 'Unknown error' };
+        results.push({ email, success: false, error: 'Unknown error' });
       }
-    });
 
-    const results = await Promise.all(emailPromises);
+      // Add delay between emails (600ms = ~1.6 emails/second to stay under 2/sec limit)
+      if (i < memberEmails.length - 1) {
+        await delay(600);
+      }
+    }
     
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;

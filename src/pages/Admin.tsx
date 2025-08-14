@@ -537,14 +537,20 @@ const Admin = () => {
     }
   };
 
-  const getEventStatusBadge = (status: string) => {
-    switch (status) {
+  const getEventStatusBadge = (approvalStatus: string, eventStatus?: string) => {
+    switch (approvalStatus) {
       case 'pending':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
           <Clock className="h-3 w-3 mr-1" />
           Pending
         </Badge>;
       case 'approved':
+        if (eventStatus === 'cancelled') {
+          return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+            <XCircle className="h-3 w-3 mr-1" />
+            Cancelled
+          </Badge>;
+        }
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
           <CheckCircle className="h-3 w-3 mr-1" />
           Approved
@@ -555,7 +561,7 @@ const Admin = () => {
           Rejected
         </Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{approvalStatus}</Badge>;
     }
   };
 
@@ -686,7 +692,7 @@ const Admin = () => {
                           </div>
                         </td>
                         <td className="py-3 px-3">
-                          {getEventStatusBadge(event.approval_status)}
+                          {getEventStatusBadge(event.approval_status, event.status)}
                         </td>
                         <td className="py-3 px-3">
                           {event.approval_status === 'pending' && (
