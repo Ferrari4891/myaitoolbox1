@@ -67,6 +67,7 @@ const Navigation = () => {
       ? [
           { label: "Approved Venues", path: "/approved-venues" },
           { label: "Add Venue", path: "/add-venue" },
+          { label: "Schedule Event", path: "/schedule-event" },
         ]
       : [
           { label: "Join Now", path: "/join", isButton: true },

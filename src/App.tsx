@@ -13,6 +13,8 @@ import HowTo from "./pages/HowTo";
 import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenue from "./pages/AddVenue";
 import EditVenue from "./pages/EditVenue";
+import ScheduleEvent from "./pages/ScheduleEvent";
+import EventRSVP from "./pages/EventRSVP";
 import Admin from "./pages/Admin";
 import AdminSignIn from "./pages/AdminSignIn";
 import NotFound from "./pages/NotFound";
@@ -37,6 +39,8 @@ const App = () => {
             <Route path="/how-to" element={<HowTo />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
             <Route path="/add-venue" element={<AddVenue />} />
+            <Route path="/schedule-event" element={<ScheduleEvent />} />
+            <Route path="/event-rsvp" element={<EventRSVP />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/edit-venue/:id" element={<EditVenue />} />
