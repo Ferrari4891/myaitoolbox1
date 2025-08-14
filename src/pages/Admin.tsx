@@ -334,9 +334,13 @@ const Admin = () => {
   };
 
   const removeMember = async (memberId: string, memberName: string) => {
+    console.log('REMOVE MEMBER FUNCTION CALLED!', { memberId, memberName });
+    
     const confirmRemoval = window.confirm(
       `Are you sure you want to remove ${memberName || 'this member'}? This action cannot be undone.`
     );
+    
+    console.log('User confirmed removal:', confirmRemoval);
     
     if (!confirmRemoval) return;
     
