@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
+import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -87,6 +88,8 @@ const Admin = () => {
   const [processingEvents, setProcessingEvents] = useState<Set<string>>(new Set());
   const [editingEvent, setEditingEvent] = useState<EventWithVenue | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [resendingEvent, setResendingEvent] = useState<EventWithVenue | null>(null);
+  const [isResendDialogOpen, setIsResendDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -717,6 +720,16 @@ const Admin = () => {
     fetchEvents();
   };
 
+  const handleResendInvitation = (event: EventWithVenue) => {
+    setResendingEvent(event);
+    setIsResendDialogOpen(true);
+  };
+
+  const handleResendDialogClose = () => {
+    setIsResendDialogOpen(false);
+    setResendingEvent(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -938,31 +951,41 @@ const Admin = () => {
                                </>
                              )}
 
-                             {/* Management buttons for approved events */}
-                             {event.approval_status === 'approved' && event.status !== 'cancelled' && (
-                               <>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventCancellation(event.id)}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                   title="Cancel event"
-                                 >
-                                   <Settings className="h-4 w-4" />
-                                 </Button>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventRemoval(event.id)}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                   title="Remove event permanently"
-                                 >
-                                   <Trash2 className="h-4 w-4" />
-                                 </Button>
-                               </>
-                             )}
+                              {/* Management buttons for approved events */}
+                              {event.approval_status === 'approved' && event.status !== 'cancelled' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleResendInvitation(event)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    title="Resend invitation"
+                                  >
+                                    <Mail className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEventCancellation(event.id)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                    title="Cancel event"
+                                  >
+                                    <Settings className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEventRemoval(event.id)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Remove event permanently"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
 
                              {/* Remove button for cancelled events */}
                              {event.status === 'cancelled' && (
@@ -1277,11 +1300,17 @@ const Admin = () => {
           </div>
         )}
 
-        <EditEventDialog
+        <EditEventDialog 
           event={editingEvent}
           isOpen={isEditDialogOpen}
           onClose={handleEditDialogClose}
           onEventUpdated={handleEventUpdated}
+        />
+
+        <ResendInvitationDialog 
+          event={resendingEvent}
+          isOpen={isResendDialogOpen}
+          onClose={handleResendDialogClose}
         />
       </main>
     </div>
