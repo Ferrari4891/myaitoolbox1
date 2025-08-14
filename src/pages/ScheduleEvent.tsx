@@ -214,10 +214,10 @@ const ScheduleEvent = () => {
                         name="memberName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Member Name
-                            </FormLabel>
+                             <FormLabel className="flex items-center gap-2">
+                               <Users className="h-4 w-4" />
+                               EVENT CREATOR
+                             </FormLabel>
                             <FormControl>
                               <Input placeholder="Your name" {...field} />
                             </FormControl>
