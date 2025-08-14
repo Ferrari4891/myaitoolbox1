@@ -343,21 +343,42 @@ const Admin = () => {
     setRemovingMembers(prev => new Set(prev).add(memberId));
     
     try {
-      // Get member email to delete all profiles with same email
+      // Get member email and user_id to delete completely
       const { data: memberToDelete } = await supabase
         .from('profiles')
-        .select('email')
+        .select('email, user_id')
         .eq('id', memberId)
         .single();
       
+      console.log('Deleting member:', memberToDelete);
+      
       if (memberToDelete?.email) {
-        // Delete all profiles with the same email
-        const { error } = await supabase
+        // First delete all profiles with the same email
+        const { error: profileError } = await supabase
           .from('profiles')
           .delete()
           .eq('email', memberToDelete.email);
         
-        if (error) throw error;
+        if (profileError) {
+          console.error('Error deleting profiles:', profileError);
+          throw profileError;
+        }
+        
+        console.log('Deleted all profiles with email:', memberToDelete.email);
+        
+        // Also try to delete the user from auth if we have user_id
+        if (memberToDelete.user_id) {
+          try {
+            const { error: authError } = await supabase.auth.admin.deleteUser(memberToDelete.user_id);
+            if (authError) {
+              console.warn('Could not delete auth user:', authError);
+            } else {
+              console.log('Also deleted auth user:', memberToDelete.user_id);
+            }
+          } catch (authErr) {
+            console.warn('Auth deletion not available:', authErr);
+          }
+        }
       } else {
         // Fallback to just deleting by ID
         const { error } = await supabase
@@ -374,6 +395,7 @@ const Admin = () => {
         const updated = memberEmail 
           ? prev.filter(member => member.email !== memberEmail)
           : prev.filter(member => member.id !== memberId);
+        console.log('Updated member list after deletion. Remaining members:', updated.length);
         return updated;
       });
 
