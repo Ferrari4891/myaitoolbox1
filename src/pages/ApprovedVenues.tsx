@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 import StarRating from "@/components/StarRating";
+import { GrabLink } from "@/components/GrabLink";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Venue {
@@ -228,15 +229,18 @@ const ApprovedVenues = () => {
                         <p className="text-sm text-muted-foreground">
                           {venue.address}
                         </p>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary hover:text-primary/80"
-                          onClick={() => openGoogleMaps(venue.address, venue.google_maps_link)}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          View on Google Maps
-                        </Button>
+                        <div className="flex items-center flex-wrap gap-3 mt-2">
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-primary hover:text-primary/80"
+                            onClick={() => openGoogleMaps(venue.address, venue.google_maps_link)}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View on Google Maps
+                          </Button>
+                          <GrabLink venue={venue} />
+                        </div>
                       </div>
                     </div>
                     
