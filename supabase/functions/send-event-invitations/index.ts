@@ -170,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailPromises = memberEmails.map(async (email) => {
       try {
         const { error } = await resend.emails.send({
-          from: 'Galloping Geezers <events@gallopinggeezers.online>',
+          from: 'Galloping Geezers <onboarding@resend.dev>',
           to: [email],
           subject: emailSubject,
           html: emailHtml,

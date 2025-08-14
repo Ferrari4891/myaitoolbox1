@@ -363,6 +363,23 @@ const Admin = () => {
       if (status === 'approved') {
         const event = events.find(e => e.id === eventId);
         if (event) {
+          // Get the actual invite token from the database
+          const { data: invitationData, error: tokenError } = await supabase
+            .from('group_invitations')
+            .select('invite_token')
+            .eq('id', eventId)
+            .single();
+
+          if (tokenError) {
+            console.error('Error fetching invite token:', tokenError);
+            toast({
+              title: "Error",
+              description: "Failed to get invitation token.",
+              variant: "destructive",
+            });
+            return;
+          }
+
           const { error: emailError } = await supabase.functions.invoke('send-event-invitations', {
             body: {
               invitationId: eventId,
@@ -374,7 +391,7 @@ const Admin = () => {
                 proposedDate: event.proposed_date,
                 rsvpDeadline: event.rsvp_deadline,
                 customMessage: event.custom_message,
-                inviteToken: 'placeholder'
+                inviteToken: invitationData.invite_token
               }
             }
           });
