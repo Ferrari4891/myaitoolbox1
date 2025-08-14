@@ -152,6 +152,9 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
+      console.log('Fetched members from database:', profilesData);
+      console.log('Tony Cook profiles found:', profilesData?.filter(p => p.email === 'tonycook396@gmail.com'));
+
       setRecentMembers(profilesData || []);
     } catch (error) {
       console.error('Error fetching recent members:', error);
