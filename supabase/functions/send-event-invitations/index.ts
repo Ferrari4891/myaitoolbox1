@@ -81,8 +81,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     };
 
-    // Create RSVP URL
-    const rsvpUrl = `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'supabase.app')}/event-rsvp?token=${eventDetails.inviteToken}`;
+    // Create RSVP URL - point to the actual application
+    const rsvpUrl = `https://fd4c5f74-86bb-4f7e-bc3d-7c635105148c.lovableproject.com/event-rsvp?token=${eventDetails.inviteToken}`;
 
     // Create email content
     const emailSubject = `🎉 You're Invited: ${eventDetails.eventType} at ${eventDetails.venue.business_name}`;
