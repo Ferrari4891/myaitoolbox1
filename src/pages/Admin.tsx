@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,16 @@ interface EventWithVenue {
   creator: {
     display_name: string;
   };
+  rsvps?: RSVPResponse[];
+}
+
+interface RSVPResponse {
+  id: string;
+  invitee_email: string;
+  response: string | null;
+  guest_count: number | null;
+  response_message: string | null;
+  responded_at: string | null;
 }
 
 const Admin = () => {
@@ -185,6 +195,13 @@ const Admin = () => {
           .select("display_name")
           .eq("user_id", event.creator_id)
           .single();
+
+        // Fetch RSVP responses for this event
+        const { data: rsvpData } = await supabase
+          .from("invitation_rsvps")
+          .select("id, invitee_email, response, guest_count, response_message, responded_at")
+          .eq("invitation_id", event.id)
+          .order("responded_at", { ascending: false });
         
         transformedEvents.push({
           id: event.id,
@@ -202,7 +219,8 @@ const Admin = () => {
           },
           creator: {
             display_name: creatorData?.display_name || 'Unknown Creator'
-          }
+          },
+          rsvps: rsvpData || []
         });
       }
       
@@ -683,6 +701,7 @@ const Admin = () => {
                       <th className="text-left py-2 px-3 font-medium">Creator</th>
                       <th className="text-left py-2 px-3 font-medium">Date</th>
                       <th className="text-left py-2 px-3 font-medium">Status</th>
+                      <th className="text-left py-2 px-3 font-medium">RSVPs</th>
                       <th className="text-left py-2 px-3 font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -710,6 +729,70 @@ const Admin = () => {
                         </td>
                          <td className="py-3 px-3">
                           {getEventStatusBadge(event.approval_status, event.status)}
+                         </td>
+                         <td className="py-3 px-3">
+                           <div className="text-sm">
+                             {event.rsvps && event.rsvps.length > 0 ? (
+                               <div className="space-y-1">
+                                 <div className="flex items-center gap-1 text-green-600">
+                                   <UserCheck className="h-3 w-3" />
+                                   <span className="font-medium">
+                                     {event.rsvps.filter(r => r.response === 'yes').length} Yes
+                                   </span>
+                                 </div>
+                                 <div className="flex items-center gap-1 text-red-600">
+                                   <X className="h-3 w-3" />
+                                   <span className="font-medium">
+                                     {event.rsvps.filter(r => r.response === 'no').length} No
+                                   </span>
+                                 </div>
+                                 <div className="flex items-center gap-1 text-yellow-600">
+                                   <Clock className="h-3 w-3" />
+                                   <span className="font-medium">
+                                     {event.rsvps.filter(r => r.response === 'maybe').length} Maybe
+                                   </span>
+                                 </div>
+                                 <details className="mt-2">
+                                   <summary className="cursor-pointer text-blue-600 hover:text-blue-700 text-xs">
+                                     View Details
+                                   </summary>
+                                   <div className="mt-2 p-2 bg-muted rounded-md max-h-32 overflow-y-auto">
+                                     {event.rsvps.map((rsvp) => (
+                                       <div key={rsvp.id} className="text-xs border-b border-muted-foreground/20 pb-1 mb-1 last:border-0">
+                                         <div className="font-medium">{rsvp.invitee_email}</div>
+                                         <div className="flex items-center gap-2">
+                                           <Badge 
+                                             variant={
+                                               rsvp.response === 'yes' ? 'default' : 
+                                               rsvp.response === 'no' ? 'destructive' : 'secondary'
+                                             }
+                                             className="text-xs py-0 px-1"
+                                           >
+                                             {rsvp.response || 'No response'}
+                                           </Badge>
+                                           {rsvp.guest_count && rsvp.guest_count > 1 && (
+                                             <span className="text-muted-foreground">+{rsvp.guest_count - 1} guests</span>
+                                           )}
+                                         </div>
+                                         {rsvp.response_message && (
+                                           <div className="italic text-muted-foreground mt-1">
+                                             "{rsvp.response_message}"
+                                           </div>
+                                         )}
+                                         {rsvp.responded_at && (
+                                           <div className="text-muted-foreground">
+                                             {new Date(rsvp.responded_at).toLocaleDateString()}
+                                           </div>
+                                         )}
+                                       </div>
+                                     ))}
+                                   </div>
+                                 </details>
+                               </div>
+                             ) : (
+                               <span className="text-muted-foreground">No responses yet</span>
+                             )}
+                           </div>
                          </td>
                          <td className="py-3 px-3">
                            <div className="flex gap-1">
