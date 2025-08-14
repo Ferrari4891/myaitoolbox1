@@ -10,7 +10,13 @@ interface Venue {
 }
 
 const GRAB_GREEN = "#00B14F";
-const GRAB_SVG_SRC = "https://upload.wikimedia.org/wikipedia/commons/4/45/Grab_Logo.svg";
+// Using a data URI for the Grab logo as fallback for better mobile compatibility
+const GRAB_LOGO_SVG = `data:image/svg+xml;base64,${btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="${GRAB_GREEN}">
+  <path d="M20 15h10v5H20zm0 10h15v5H20zm0 10h12v5H20z"/>
+  <text x="50" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="${GRAB_GREEN}">Grab</text>
+</svg>
+`)}`;
 
 function extractLatLngFromGoogleMapsUrl(url?: string): { lat?: number; lng?: number } {
   if (!url) return {};
@@ -128,18 +134,22 @@ export function GrabLink({ venue }: GrabLinkProps) {
       onClick={openInGrab}
       aria-label="Open destination in Grab app"
       title="Open destination in Grab"
-      className="inline-flex items-center gap-2 min-h-[44px] min-w-[44px] justify-center sm:justify-start text-sm font-medium hover:opacity-80 transition-opacity"
+      className="inline-flex items-center gap-1 min-h-[44px] px-2 text-sm font-medium hover:opacity-80 transition-opacity whitespace-nowrap"
       style={{ color: GRAB_GREEN }}
     >
       <img
-        src={GRAB_SVG_SRC}
+        src={GRAB_LOGO_SVG}
         alt="Grab"
-        width={18}
-        height={18}
+        width={20}
+        height={20}
         className="flex-shrink-0"
         loading="lazy"
+        onError={(e) => {
+          // Fallback to text-only if image fails
+          e.currentTarget.style.display = 'none';
+        }}
       />
-      <span className="hidden sm:inline">Grab</span>
+      <span className="text-sm font-medium">Grab</span>
     </a>
   );
 }
