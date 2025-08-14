@@ -83,7 +83,7 @@ const EventRSVP = () => {
             )
           `)
           .eq("invite_token", token)
-          .eq("status", "active")
+          .eq("approval_status", "approved")
           .single();
 
         if (error) throw error;
