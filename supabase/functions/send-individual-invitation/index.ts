@@ -186,16 +186,21 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email
-    const { data: emailData, error: emailError } = await resend.emails.send({
+    console.log(`Attempting to send email to: ${recipientEmail}`);
+    console.log(`Using Resend API key: ${resendApiKey ? 'Present' : 'Missing'}`);
+    
+    const emailResult = await resend.emails.send({
       from: 'Galloping Geezers <onboarding@resend.dev>',
       to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,
     });
 
-    if (emailError) {
-      console.error('Resend API error:', emailError);
-      throw new Error(`Failed to send email: ${emailError.message || JSON.stringify(emailError)}`);
+    console.log('Resend API response:', emailResult);
+
+    if (emailResult.error) {
+      console.error('Resend API error details:', emailResult.error);
+      throw new Error(`Failed to send email: ${emailResult.error.message || JSON.stringify(emailResult.error)}`);
     }
 
     console.log(`Individual invitation sent successfully to ${recipientEmail} for event ${invitationId}`);
