@@ -222,6 +222,8 @@ const ApprovedVenues = () => {
                     </p>
                   </div>
                   
+                  <div className="h-px bg-border"></div>
+                  
                   <div className="space-y-3">
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
@@ -249,18 +251,21 @@ const ApprovedVenues = () => {
                       </div>
                       
                       {venue.facebook_link && (
-                        <div className="flex items-center gap-2">
-                          <Facebook className="h-4 w-4 text-muted-foreground" />
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-primary hover:text-primary/80"
-                            onClick={() => window.open(venue.facebook_link, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Facebook Page
-                          </Button>
-                        </div>
+                        <>
+                          <div className="h-px bg-border"></div>
+                          <div className="flex items-center gap-2">
+                            <Facebook className="h-4 w-4 text-muted-foreground" />
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-primary hover:text-primary/80"
+                              onClick={() => window.open(venue.facebook_link, '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Facebook Page
+                            </Button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
