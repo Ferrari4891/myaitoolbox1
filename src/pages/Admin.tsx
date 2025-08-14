@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -37,13 +37,33 @@ interface RecentMember {
   gender?: string;
 }
 
+interface EventWithVenue {
+  id: string;
+  group_name: string;
+  proposed_date: string;
+  rsvp_deadline: string;
+  custom_message: string;
+  approval_status: string;
+  created_at: string;
+  creator_id: string;
+  venue: {
+    business_name: string;
+    address: string;
+  };
+  creator: {
+    display_name: string;
+  };
+}
+
 const Admin = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [recentMembers, setRecentMembers] = useState<RecentMember[]>([]);
+  const [events, setEvents] = useState<EventWithVenue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingVenues, setProcessingVenues] = useState<Set<string>>(new Set());
   const [removingMembers, setRemovingMembers] = useState<Set<string>>(new Set());
+  const [processingEvents, setProcessingEvents] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -71,6 +91,7 @@ const Admin = () => {
         setIsAdmin(true);
         fetchVenues();
         fetchRecentMembers();
+        fetchEvents();
         setupRealtimeSubscription();
       } else {
         toast({
@@ -120,6 +141,73 @@ const Admin = () => {
       setRecentMembers(profilesData || []);
     } catch (error) {
       console.error('Error fetching recent members:', error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("group_invitations")
+        .select(`
+          id,
+          group_name,
+          proposed_date,
+          rsvp_deadline,
+          custom_message,
+          approval_status,
+          created_at,
+          creator_id,
+          venue_id
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data with venue and creator info
+      const transformedEvents: EventWithVenue[] = [];
+      
+      for (const event of data || []) {
+        // Fetch venue info
+        const { data: venueData } = await supabase
+          .from("venues")
+          .select("business_name, address")
+          .eq("id", event.venue_id)
+          .single();
+          
+        // Fetch creator info
+        const { data: creatorData } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", event.creator_id)
+          .single();
+        
+        transformedEvents.push({
+          id: event.id,
+          group_name: event.group_name,
+          proposed_date: event.proposed_date,
+          rsvp_deadline: event.rsvp_deadline,
+          custom_message: event.custom_message,
+          approval_status: event.approval_status,
+          created_at: event.created_at,
+          creator_id: event.creator_id,
+          venue: {
+            business_name: venueData?.business_name || 'Unknown Venue',
+            address: venueData?.address || 'Unknown Address'
+          },
+          creator: {
+            display_name: creatorData?.display_name || 'Unknown Creator'
+          }
+        });
+      }
+      
+      setEvents(transformedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load events.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -260,6 +348,98 @@ const Admin = () => {
     }
   };
 
+  const handleEventApproval = async (eventId: string, status: 'approved' | 'rejected') => {
+    setProcessingEvents(prev => new Set(prev).add(eventId));
+    try {
+      // Update event status
+      const { error: updateError } = await supabase
+        .from("group_invitations")
+        .update({ approval_status: status })
+        .eq("id", eventId);
+
+      if (updateError) throw updateError;
+
+      // If approved, send invitations
+      if (status === 'approved') {
+        const event = events.find(e => e.id === eventId);
+        if (event) {
+          const { error: emailError } = await supabase.functions.invoke('send-event-invitations', {
+            body: {
+              invitationId: eventId,
+              eventDetails: {
+                eventType: event.group_name.includes('Coffee') ? 'Coffee' : 
+                           event.group_name.includes('Lunch') ? 'Lunch' : 'Dinner',
+                memberName: event.creator.display_name,
+                venue: event.venue,
+                proposedDate: event.proposed_date,
+                rsvpDeadline: event.rsvp_deadline,
+                customMessage: event.custom_message,
+                inviteToken: 'placeholder'
+              }
+            }
+          });
+
+          if (emailError) {
+            console.error("Email sending failed:", emailError);
+            toast({
+              title: "Event approved, but email failed",
+              description: "Event was approved but invitations couldn't be sent.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Event approved!",
+              description: "Invitations have been sent to all members.",
+            });
+          }
+        }
+      } else {
+        toast({
+          title: "Event rejected",
+          description: "The event has been rejected.",
+        });
+      }
+
+      // Refresh events list
+      await fetchEvents();
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update event status.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+    }
+  };
+
+  const getEventStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Approved
+        </Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <XCircle className="h-3 w-3 mr-1" />
+          Rejected
+        </Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'approved':
@@ -292,6 +472,7 @@ const Admin = () => {
   const pendingVenues = venues.filter(v => v.status === 'pending');
   const approvedVenues = venues.filter(v => v.status === 'approved');
   const rejectedVenues = venues.filter(v => v.status === 'rejected');
+  const pendingEvents = events.filter(e => e.approval_status === 'pending');
 
   return (
     <div className="min-h-screen bg-background">
@@ -332,23 +513,99 @@ const Admin = () => {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xl font-bold text-blue-600">Events</div>
-                  <div className="text-xs text-muted-foreground">Manage Events</div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/event-management')}
-                >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  View
-                </Button>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{pendingEvents.length}</div>
+                <div className="text-sm text-muted-foreground">Pending Events</div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Event Management Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Event Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {events.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No events yet</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3 font-medium">Event Name</th>
+                      <th className="text-left py-2 px-3 font-medium">Creator</th>
+                      <th className="text-left py-2 px-3 font-medium">Date</th>
+                      <th className="text-left py-2 px-3 font-medium">Status</th>
+                      <th className="text-left py-2 px-3 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {events.map((event) => (
+                      <tr key={event.id} className="border-b hover:bg-muted/30">
+                        <td className="py-3 px-3">
+                          <div className="font-medium">{event.group_name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {event.venue.business_name}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm">
+                            {event.creator.display_name}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm">
+                            {new Date(event.proposed_date).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            RSVP: {new Date(event.rsvp_deadline).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          {getEventStatusBadge(event.approval_status)}
+                        </td>
+                        <td className="py-3 px-3">
+                          {event.approval_status === 'pending' && (
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventApproval(event.id, 'approved')}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventApproval(event.id, 'rejected')}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                          {event.approval_status !== 'pending' && (
+                            <span className="text-sm text-muted-foreground">
+                              {event.approval_status === 'approved' ? 'Approved' : 'Rejected'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Members Section */}
         <Card className="mb-8">
