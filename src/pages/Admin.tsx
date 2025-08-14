@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,7 @@ interface EventWithVenue {
   rsvp_deadline: string;
   custom_message: string;
   approval_status: string;
+  status: string;
   created_at: string;
   creator_id: string;
   venue: {
@@ -155,6 +156,7 @@ const Admin = () => {
           rsvp_deadline,
           custom_message,
           approval_status,
+          status,
           created_at,
           creator_id,
           venue_id
@@ -188,6 +190,7 @@ const Admin = () => {
           rsvp_deadline: event.rsvp_deadline,
           custom_message: event.custom_message,
           approval_status: event.approval_status,
+          status: event.status,
           created_at: event.created_at,
           creator_id: event.creator_id,
           venue: {
@@ -460,6 +463,80 @@ const Admin = () => {
     }
   };
 
+  const handleEventCancellation = async (eventId: string) => {
+    setProcessingEvents(prev => new Set(prev).add(eventId));
+    try {
+      // Update event status to cancelled
+      const { error: updateError } = await supabase
+        .from("group_invitations")
+        .update({ 
+          status: 'cancelled'
+        })
+        .eq("id", eventId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Event cancelled",
+        description: "The event has been cancelled successfully.",
+      });
+
+      // Refresh events list
+      await fetchEvents();
+    } catch (error) {
+      console.error("Error cancelling event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel the event. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleEventRemoval = async (eventId: string) => {
+    if (!confirm("Are you sure you want to permanently remove this event? This action cannot be undone.")) {
+      return;
+    }
+
+    setProcessingEvents(prev => new Set(prev).add(eventId));
+    try {
+      // Delete the event permanently
+      const { error: deleteError } = await supabase
+        .from("group_invitations")
+        .delete()
+        .eq("id", eventId);
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: "Event removed",
+        description: "The event has been permanently removed.",
+      });
+
+      // Refresh events list
+      await fetchEvents();
+    } catch (error) {
+      console.error("Error removing event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove the event. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+    }
+  };
+
   const getEventStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -635,9 +712,50 @@ const Admin = () => {
                             </div>
                           )}
                           {event.approval_status !== 'pending' && (
-                            <span className="text-sm text-muted-foreground">
-                              {event.approval_status === 'approved' ? 'Approved' : 'Rejected'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {event.approval_status === 'approved' ? 'Approved' : 'Rejected'}
+                              </span>
+                              {event.approval_status === 'approved' && event.status !== 'cancelled' && (
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEventCancellation(event.id)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                    title="Cancel event"
+                                  >
+                                    <Settings className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEventRemoval(event.id)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Remove event permanently"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
+                              {event.status === 'cancelled' && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="destructive">Cancelled</Badge>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEventRemoval(event.id)}
+                                    disabled={processingEvents.has(event.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Remove event permanently"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </td>
                       </tr>
