@@ -58,6 +58,19 @@ const JoinNow = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Send welcome email
+        try {
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              userId: data.user.id,
+              email: formData.email,
+              displayName: `${formData.firstName} ${formData.lastName}`
+            }
+          });
+        } catch (emailError) {
+          console.log('Welcome email failed to send, but account was created successfully');
+        }
+        
         toast.success("Account created successfully! You can now sign in with your email and password.");
         setFormData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
       }
