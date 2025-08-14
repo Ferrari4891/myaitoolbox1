@@ -159,7 +159,6 @@ const Admin = () => {
           creator_id,
           venue_id
         `)
-        .eq("approval_status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
