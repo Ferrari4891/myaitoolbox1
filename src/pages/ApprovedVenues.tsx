@@ -229,35 +229,40 @@ const ApprovedVenues = () => {
                         <p className="text-sm text-muted-foreground">
                           {venue.address}
                         </p>
-                        <div className="flex items-center flex-wrap gap-3 mt-2">
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-primary hover:text-primary/80"
-                            onClick={() => openGoogleMaps(venue.address, venue.google_maps_link)}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View on Google Maps
-                          </Button>
-                          <GrabLink venue={venue} />
-                        </div>
                       </div>
                     </div>
                     
-                    {venue.facebook_link && (
-                      <div className="flex items-center gap-2">
-                        <Facebook className="h-4 w-4 text-muted-foreground" />
+                    <div className="h-px bg-border"></div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center flex-wrap gap-3">
                         <Button
                           variant="link"
                           size="sm"
                           className="h-auto p-0 text-primary hover:text-primary/80"
-                          onClick={() => window.open(venue.facebook_link, '_blank')}
+                          onClick={() => openGoogleMaps(venue.address, venue.google_maps_link)}
                         >
                           <ExternalLink className="h-3 w-3 mr-1" />
-                          Facebook Page
+                          View on Google Maps
                         </Button>
+                        <GrabLink venue={venue} />
                       </div>
-                    )}
+                      
+                      {venue.facebook_link && (
+                        <div className="flex items-center gap-2">
+                          <Facebook className="h-4 w-4 text-muted-foreground" />
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-primary hover:text-primary/80"
+                            onClick={() => window.open(venue.facebook_link, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Facebook Page
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   {isAdmin && (
