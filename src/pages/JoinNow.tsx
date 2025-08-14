@@ -99,7 +99,7 @@ const JoinNow = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-foreground font-medium">
-                    First Name
+                    First Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="firstName"
@@ -115,7 +115,7 @@ const JoinNow = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-foreground font-medium">
-                    Last Name
+                    Last Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="lastName"
@@ -131,7 +131,7 @@ const JoinNow = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-foreground font-medium">
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -147,7 +147,7 @@ const JoinNow = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-foreground font-medium">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="password"
@@ -163,7 +163,7 @@ const JoinNow = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-foreground font-medium">
-                    Confirm Password
+                    Confirm Password <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="confirmPassword"
