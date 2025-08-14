@@ -39,7 +39,7 @@ export default function EventManagement() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/admin-signin");
+      navigate("/admin-sign-in");
       return;
     }
     checkAdminAndFetchEvents();
