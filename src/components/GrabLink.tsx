@@ -92,43 +92,29 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      // Try multiple Grab deep link formats for better compatibility
-      const grabScheme = `grab://open?destination=${destination}`;
-      const grabHttp = `https://grab.com/open?destination=${destination}`;
-      const intent = `intent://open?destination=${destination}#Intent;scheme=grab;package=com.grabtaxi.passenger;S.browser_fallback_url=${encodeURIComponent(grabHttp)};end`;
+      const grabScheme = "grab://open";
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      // First try the grab:// scheme
       window.location.href = grabScheme;
       
-      // Longer timeout and more robust fallback detection
+      // Fallback to Play Store if app not installed
       setTimeout(() => {
-        // Check if we're still on the same page (app didn't open)
         if (document.hasFocus() && document.visibilityState === "visible") {
-          // Try the intent method
-          window.location.href = intent;
-          
-          // Final fallback to Play Store
-          setTimeout(() => {
-            if (document.hasFocus() && document.visibilityState === "visible") {
-              window.location.href = playStore;
-            }
-          }, 1500);
+          window.location.href = playStore;
         }
-      }, 2000);
+      }, 1500);
       return;
     }
 
     if (isIOS()) {
-      const scheme = `grab://open?destination=${destination}`;
+      const scheme = "grab://open";
       const appStore = "https://apps.apple.com/app/id647268330";
-      const startTime = Date.now();
       
       window.location.href = scheme;
       
       // Fallback to App Store if app not installed
       setTimeout(() => {
-        if (Date.now() - startTime < 2000 && document.visibilityState === "visible") {
+        if (document.visibilityState === "visible") {
           window.location.href = appStore;
         }
       }, 1200);
