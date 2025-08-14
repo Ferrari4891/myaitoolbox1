@@ -38,6 +38,14 @@ interface RecentMember {
   gender?: string;
 }
 
+interface BlockedUser {
+  id: string;
+  email: string;
+  reason?: string;
+  created_at: string;
+  blocked_by?: string;
+}
+
 interface EventWithVenue {
   id: string;
   group_name: string;
@@ -70,6 +78,7 @@ interface RSVPResponse {
 const Admin = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [recentMembers, setRecentMembers] = useState<RecentMember[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [events, setEvents] = useState<EventWithVenue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -105,6 +114,7 @@ const Admin = () => {
         setIsAdmin(true);
         fetchVenues();
         fetchRecentMembers();
+        fetchBlockedUsers();
         fetchEvents();
         setupRealtimeSubscription();
       } else {
@@ -158,6 +168,49 @@ const Admin = () => {
       setRecentMembers(profilesData || []);
     } catch (error) {
       console.error('Error fetching recent members:', error);
+    }
+  };
+
+  const fetchBlockedUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blocked_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBlockedUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
+    }
+  };
+
+  const unblockUser = async (userId: string, email: string) => {
+    if (!confirm(`Are you sure you want to unblock ${email}? They will be able to create a profile again.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('blocked_users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setBlockedUsers(prev => prev.filter(user => user.id !== userId));
+      
+      toast({
+        title: "User unblocked",
+        description: `${email} has been unblocked and can now create a profile.`,
+      });
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to unblock user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1009,6 +1062,62 @@ const Admin = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Blocked Users Section */}
+        {blockedUsers.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-red-600" />
+                Blocked Users ({blockedUsers.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3 font-medium">Email</th>
+                      <th className="text-left py-2 px-3 font-medium">Reason</th>
+                      <th className="text-left py-2 px-3 font-medium">Blocked Date</th>
+                      <th className="text-left py-2 px-3 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {blockedUsers.map((user) => (
+                      <tr key={user.id} className="border-b hover:bg-muted/30">
+                        <td className="py-3 px-3">
+                          <div className="font-medium">{user.email}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {user.reason || 'No reason specified'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => unblockUser(user.id, user.email)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Unblock
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {venues.length === 0 ? (
           <div className="text-center py-12">
