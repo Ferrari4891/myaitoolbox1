@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, MapPinIcon, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CalendarIcon, MapPinIcon, Users, CheckCircle, XCircle, Clock, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import LoadingScreen from "@/components/LoadingScreen";
 
@@ -33,6 +34,8 @@ export default function EventManagement() {
   const [events, setEvents] = useState<EventWithVenue[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [resendEmail, setResendEmail] = useState<string>("");
+  const [resendingEventId, setResendingEventId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -78,7 +81,7 @@ export default function EventManagement() {
           creator_id,
           venue_id
         `)
-        .eq("approval_status", "pending")
+        .in("approval_status", ["pending", "approved"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -224,6 +227,58 @@ export default function EventManagement() {
     }
   };
 
+  const handleResendInvitation = async (eventId: string) => {
+    if (!resendEmail.trim()) {
+      toast({
+        title: "Email Required",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resendEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setResendingEventId(eventId);
+    try {
+      const { error } = await supabase.functions.invoke('send-individual-invitation', {
+        body: {
+          invitationId: eventId,
+          recipientEmail: resendEmail.trim()
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Invitation Resent",
+        description: `Event invitation sent to ${resendEmail}`,
+      });
+
+      setResendEmail("");
+    } catch (error: any) {
+      console.error("Error resending invitation:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend invitation.",
+        variant: "destructive",
+      });
+    } finally {
+      setResendingEventId(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -330,6 +385,35 @@ export default function EventManagement() {
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject
                     </Button>
+                  </div>
+                )}
+
+                {event.approval_status === 'approved' && (
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Resend Invitation
+                    </h4>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter member email..."
+                        value={resendEmail}
+                        onChange={(e) => setResendEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={() => handleResendInvitation(event.id)}
+                        disabled={resendingEventId === event.id || !resendEmail.trim()}
+                        variant="outline"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        {resendingEventId === event.id ? "Sending..." : "Resend"}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Send event invitation to a specific member who may have missed it.
+                    </p>
                   </div>
                 )}
 
