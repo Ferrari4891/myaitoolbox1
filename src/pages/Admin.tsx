@@ -351,10 +351,13 @@ const Admin = () => {
   const handleEventApproval = async (eventId: string, status: 'approved' | 'rejected') => {
     setProcessingEvents(prev => new Set(prev).add(eventId));
     try {
-      // Update event status
+      // Update event status  
       const { error: updateError } = await supabase
         .from("group_invitations")
-        .update({ approval_status: status })
+        .update({ 
+          approval_status: status,
+          status: status === 'approved' ? 'active' : 'rejected'
+        })
         .eq("id", eventId);
 
       if (updateError) throw updateError;

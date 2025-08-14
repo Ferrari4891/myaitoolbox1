@@ -96,7 +96,12 @@ const handler = async (req: Request): Promise<Response> => {
           <title>Galloping Geezers Event Invitation</title>
         </head>
         <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; padding: 30px; margin-bottom: 30px; text-align: center;">
+          <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 10px; padding: 30px; margin-bottom: 30px; text-align: center;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://fd4c5f74-86bb-4f7e-bc3d-7c635105148c.lovableproject.com/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png" 
+                   alt="Galloping Geezers Logo" 
+                   style="max-width: 120px; height: auto; display: inline-block;">
+            </div>
             <h1 style="color: white; margin: 0; font-size: 28px;">🎉 You're Invited!</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">Galloping Geezers Community Event</p>
           </div>

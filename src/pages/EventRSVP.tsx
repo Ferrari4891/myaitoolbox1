@@ -77,7 +77,7 @@ const EventRSVP = () => {
           .from("group_invitations")
           .select(`
             *,
-            venues!group_invitations_saved_restaurant_id_fkey (
+            venues!group_invitations_venue_id_fkey (
               business_name,
               address
             )
