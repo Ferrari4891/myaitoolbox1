@@ -91,9 +91,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      const grabScheme = coords.lat && coords.lng
-        ? `grab://book?destination=${coords.lat},${coords.lng}`
-        : `grab://book?destination=${encodeURIComponent(address!)}`;
+      const grabScheme = "grab://open";
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
       window.location.href = grabScheme;
@@ -108,9 +106,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
     }
 
     if (isIOS()) {
-      const scheme = coords.lat && coords.lng
-        ? `grab://book?destination=${coords.lat},${coords.lng}`
-        : `grab://book?destination=${encodeURIComponent(address!)}`;
+      const scheme = "grab://open";
       const appStore = "https://apps.apple.com/app/id647268330";
       
       window.location.href = scheme;
