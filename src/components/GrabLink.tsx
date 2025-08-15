@@ -91,33 +91,44 @@ export function GrabLink({ venue }: GrabLinkProps) {
   function openInGrab(e: React.MouseEvent) {
     e.preventDefault();
 
+    // Construct the Grab deep link with destination
+    const grabUrl = coords.lat && coords.lng
+      ? `grab://booking?pickupLatitude=&pickupLongitude=&dropoffLatitude=${coords.lat}&dropoffLongitude=${coords.lng}`
+      : `grab://booking?dropoffAddress=${destination}`;
+
     if (isAndroid()) {
-      const grabScheme = "grab://open";
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      window.location.href = grabScheme;
-      
-      // Fallback to Play Store if app not installed
-      setTimeout(() => {
-        if (document.hasFocus() && document.visibilityState === "visible") {
+      try {
+        // Try to open the Grab app with destination
+        window.location.href = grabUrl;
+        
+        // Fallback to Play Store if app not installed
+        setTimeout(() => {
           window.location.href = playStore;
-        }
-      }, 1500);
+        }, 2000);
+      } catch (error) {
+        console.warn("Failed to open Grab app:", error);
+        window.location.href = playStore;
+      }
       return;
     }
 
     if (isIOS()) {
-      const scheme = "grab://open";
       const appStore = "https://apps.apple.com/app/id647268330";
       
-      window.location.href = scheme;
-      
-      // Fallback to App Store if app not installed
-      setTimeout(() => {
-        if (document.visibilityState === "visible") {
+      try {
+        // Try to open the Grab app with destination
+        window.location.href = grabUrl;
+        
+        // Fallback to App Store if app not installed  
+        setTimeout(() => {
           window.location.href = appStore;
-        }
-      }, 1200);
+        }, 2000);
+      } catch (error) {
+        console.warn("Failed to open Grab app:", error);
+        window.location.href = appStore;
+      }
       return;
     }
 
