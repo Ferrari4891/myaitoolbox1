@@ -24,6 +24,8 @@ interface Venue {
   image_3_url?: string;
   average_rating?: number;
   rating_count?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface VenueRating {
