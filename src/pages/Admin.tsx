@@ -154,6 +154,8 @@ const Admin = () => {
 
   const fetchRecentMembers = async () => {
     try {
+      // Add cache busting to ensure fresh data
+      const timestamp = Date.now();
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, first_name, last_name, created_at, user_id, is_admin, age_group, gender, email')
@@ -162,8 +164,9 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
-      console.log('Fetched members from database:', profilesData);
-      console.log('Tony Cook profiles found:', profilesData?.filter(p => p.email === 'tonycook396@gmail.com'));
+      console.log('Fetched members from database at:', new Date().toISOString());
+      console.log('Fresh data timestamp:', timestamp);
+      console.log('Members count:', profilesData?.length);
 
       setRecentMembers(profilesData || []);
     } catch (error) {

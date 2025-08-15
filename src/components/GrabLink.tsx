@@ -30,23 +30,39 @@ export function GrabLink() {
     e.preventDefault();
 
     if (isAndroid()) {
-      // Use Android intent URL for better compatibility
+      // Try multiple approaches for Android
+      const grabUrl = "grab://";
       const intentUrl = "intent://open#Intent;scheme=grab;package=com.grabtaxi.passenger;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.grabtaxi.passenger;end";
-      window.location.href = intentUrl;
+      
+      // First try the grab:// scheme
+      try {
+        window.location.href = grabUrl;
+        // Fallback to intent URL after a short delay if app doesn't open
+        setTimeout(() => {
+          window.location.href = intentUrl;
+        }, 500);
+      } catch {
+        window.location.href = intentUrl;
+      }
       return;
     }
 
     if (isIOS()) {
-      // Use a more reliable method for iOS
+      // For iOS, use the universal URL which should work better
       const grabUrl = "grab://";
-      const appStoreUrl = "https://apps.apple.com/app/id647268330";
+      const fallbackUrl = "https://apps.apple.com/app/id647268330";
       
-      // Try to open the app
-      window.location.href = grabUrl;
+      // Try to open the app using a more robust method
+      const link = document.createElement('a');
+      link.href = grabUrl;
+      link.click();
       
-      // If the app doesn't open, the user will see a "Cannot Open Page" error
-      // They can then manually go to the App Store
-      // This is actually the most reliable approach on modern iOS
+      // Fallback to App Store if needed
+      setTimeout(() => {
+        if (!document.hidden) {
+          window.location.href = fallbackUrl;
+        }
+      }, 2000);
       return;
     }
   }
