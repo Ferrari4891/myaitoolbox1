@@ -247,8 +247,11 @@ const ApprovedVenues = () => {
                           <ExternalLink className="h-3 w-3 mr-1" />
                           View on Google Maps
                         </Button>
-                        <GrabLink venue={venue} />
-                      </div>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         <GrabLink venue={venue} />
+                       </div>
                       
                       {venue.facebook_link && (
                         <>

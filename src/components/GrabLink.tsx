@@ -91,48 +91,31 @@ export function GrabLink({ venue }: GrabLinkProps) {
   function openInGrab(e: React.MouseEvent) {
     e.preventDefault();
 
-    // Construct the Grab deep link with destination
-    const grabUrl = coords.lat && coords.lng
-      ? `grab://booking?pickupLatitude=&pickupLongitude=&dropoffLatitude=${coords.lat}&dropoffLongitude=${coords.lng}`
-      : `grab://booking?dropoffAddress=${destination}`;
+    // Construct the proper Grab deep link
+    let grabUrl = "";
+    
+    if (coords.lat && coords.lng) {
+      // Use coordinates if available
+      grabUrl = `https://grab.onelink.me/2695613898?pid=inappBrowser&c=MGP&is_retargeting=true&af_dp=grab%3A%2F%2Fopen%3FscreenType%3DBOOKING%26bookingType%3DJUSTGRAB%26dropOffLatitude%3D${coords.lat}%26dropOffLongitude%3D${coords.lng}`;
+    } else if (address) {
+      // Use address if coordinates not available
+      grabUrl = `https://grab.onelink.me/2695613898?pid=inappBrowser&c=MGP&is_retargeting=true&af_dp=grab%3A%2F%2Fopen%3FscreenType%3DBOOKING%26bookingType%3DJUSTGRAB%26dropOffAddress%3D${encodeURIComponent(address)}`;
+    }
 
-    if (isAndroid()) {
-      const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
-      
-      try {
-        // Try to open the Grab app with destination
+    if (isAndroid() || isIOS()) {
+      if (grabUrl) {
         window.location.href = grabUrl;
-        
-        // Fallback to Play Store if app not installed
-        setTimeout(() => {
-          window.location.href = playStore;
-        }, 2000);
-      } catch (error) {
-        console.warn("Failed to open Grab app:", error);
-        window.location.href = playStore;
+      } else {
+        // Fallback to app stores
+        const storeUrl = isAndroid() 
+          ? "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger"
+          : "https://apps.apple.com/app/id647268330";
+        window.location.href = storeUrl;
       }
       return;
     }
 
-    if (isIOS()) {
-      const appStore = "https://apps.apple.com/app/id647268330";
-      
-      try {
-        // Try to open the Grab app with destination
-        window.location.href = grabUrl;
-        
-        // Fallback to App Store if app not installed  
-        setTimeout(() => {
-          window.location.href = appStore;
-        }, 2000);
-      } catch (error) {
-        console.warn("Failed to open Grab app:", error);
-        window.location.href = appStore;
-      }
-      return;
-    }
-
-    // Desktop fallback (shouldn't reach here due to mobile check above)
+    // Desktop fallback
     if (venue.google_maps_link) {
       window.open(venue.google_maps_link, "_blank");
     }
@@ -159,7 +142,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
           e.currentTarget.style.display = 'none';
         }}
       />
-      <span className="text-sm font-medium">Grab</span>
+      <span className="text-sm font-medium">GRAB A GRAB!</span>
     </a>
   );
 }
