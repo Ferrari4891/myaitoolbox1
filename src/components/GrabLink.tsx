@@ -1,8 +1,51 @@
 import { useState, useEffect } from "react";
-import { ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+interface Venue {
+  id: string;
+  business_name: string;
+  address: string;
+  google_maps_link?: string;
+  latitude?: number;
+  longitude?: number;
+}
 
 const GRAB_GREEN = "#00B14F";
+// Using a data URI for the Grab logo as fallback for better mobile compatibility
+const GRAB_LOGO_SVG = `data:image/svg+xml;base64,${btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="${GRAB_GREEN}">
+  <path d="M20 15h10v5H20zm0 10h15v5H20zm0 10h12v5H20z"/>
+  <text x="50" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="${GRAB_GREEN}">Grab</text>
+</svg>
+`)}`;
+
+function extractLatLngFromGoogleMapsUrl(url?: string): { lat?: number; lng?: number } {
+  if (!url) return {};
+  try {
+    // Try to match @lat,lng pattern
+    const atMatch = url.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+    
+    // Try to parse from query parameter
+    const urlObj = new URL(url);
+    const query = urlObj.searchParams.get("query");
+    if (query) {
+      const decodedQuery = decodeURIComponent(query);
+      const parts = decodedQuery.split(",");
+      if (parts.length >= 2) {
+        const lat = parseFloat(parts[0].trim());
+        const lng = parseFloat(parts[1].trim());
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+          return { lat, lng };
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to parse Google Maps URL:", error);
+  }
+  return {};
+}
 
 function isMobile(): boolean {
   return typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -16,7 +59,11 @@ function isAndroid(): boolean {
   return typeof window !== "undefined" && /Android/i.test(navigator.userAgent);
 }
 
-export function GrabLink() {
+interface GrabLinkProps {
+  venue: Venue;
+}
+
+export function GrabLink({ venue }: GrabLinkProps) {
   const [showOnMobile, setShowOnMobile] = useState(false);
 
   useEffect(() => {
@@ -26,64 +73,82 @@ export function GrabLink() {
   // Don't show on desktop
   if (!showOnMobile) return null;
 
-  function openGrabApp(e: React.MouseEvent) {
+  // Get coordinates from venue or try to extract from Google Maps URL
+  const coords = (venue.latitude && venue.longitude)
+    ? { lat: venue.latitude, lng: venue.longitude }
+    : extractLatLngFromGoogleMapsUrl(venue.google_maps_link);
+
+  const address = venue.address?.trim();
+  const hasDestination = (coords.lat && coords.lng) || !!address;
+
+  // Don't show if no destination data
+  if (!hasDestination) return null;
+
+  const destination = coords.lat && coords.lng
+    ? `${coords.lat},${coords.lng}`
+    : encodeURIComponent(address!);
+
+  function openInGrab(e: React.MouseEvent) {
     e.preventDefault();
 
     if (isAndroid()) {
-      // Try multiple approaches for Android
-      const grabUrl = "grab://";
-      const intentUrl = "intent://open#Intent;scheme=grab;package=com.grabtaxi.passenger;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.grabtaxi.passenger;end";
+      const grabScheme = "grab://open";
+      const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      // First try the grab:// scheme
-      try {
-        window.location.href = grabUrl;
-        // Fallback to intent URL after a short delay if app doesn't open
-        setTimeout(() => {
-          window.location.href = intentUrl;
-        }, 500);
-      } catch {
-        window.location.href = intentUrl;
-      }
+      window.location.href = grabScheme;
+      
+      // Fallback to Play Store if app not installed
+      setTimeout(() => {
+        if (document.hasFocus() && document.visibilityState === "visible") {
+          window.location.href = playStore;
+        }
+      }, 1500);
       return;
     }
 
     if (isIOS()) {
-      // For iOS, use the universal URL which should work better
-      const grabUrl = "grab://";
-      const fallbackUrl = "https://apps.apple.com/app/id647268330";
+      const scheme = "grab://open";
+      const appStore = "https://apps.apple.com/app/id647268330";
       
-      // Try to open the app using a more robust method
-      const link = document.createElement('a');
-      link.href = grabUrl;
-      link.click();
+      window.location.href = scheme;
       
-      // Fallback to App Store if needed
+      // Fallback to App Store if app not installed
       setTimeout(() => {
-        if (!document.hidden) {
-          window.location.href = fallbackUrl;
+        if (document.visibilityState === "visible") {
+          window.location.href = appStore;
         }
-      }, 2000);
+      }, 1200);
       return;
+    }
+
+    // Desktop fallback (shouldn't reach here due to mobile check above)
+    if (venue.google_maps_link) {
+      window.open(venue.google_maps_link, "_blank");
     }
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-4 h-4 flex-shrink-0" style={{ backgroundColor: GRAB_GREEN }}>
-        <svg viewBox="0 0 24 24" fill="white" className="w-full h-full p-0.5">
-          <path d="M12 2L2 7v10c0 5.55 3.84 7.74 9 9 5.16-1.26 9-3.45 9-9V7l-10-5z"/>
-        </svg>
-      </div>
-      <Button
-        variant="link"
-        size="sm"
-        className="h-auto p-0"
-        style={{ color: GRAB_GREEN }}
-        onClick={openGrabApp}
-      >
-        <ExternalLink className="h-3 w-3 mr-1" />
-        Grab a Grab
-      </Button>
-    </div>
+    <a
+      href="#grab"
+      onClick={openInGrab}
+      aria-label="Open destination in Grab app"
+      title="Open destination in Grab"
+      className="inline-flex items-center gap-1 min-h-[44px] px-2 text-sm font-medium hover:opacity-80 transition-opacity whitespace-nowrap"
+      style={{ color: GRAB_GREEN }}
+    >
+      <img
+        src={GRAB_LOGO_SVG}
+        alt="Grab"
+        width={20}
+        height={20}
+        className="flex-shrink-0"
+        loading="lazy"
+        onError={(e) => {
+          // Fallback to text-only if image fails
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+      <span className="text-sm font-medium">Grab</span>
+    </a>
   );
 }

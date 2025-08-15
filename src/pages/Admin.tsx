@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
+import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -87,6 +88,8 @@ const Admin = () => {
   const [processingEvents, setProcessingEvents] = useState<Set<string>>(new Set());
   const [editingEvent, setEditingEvent] = useState<EventWithVenue | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [resendingEvent, setResendingEvent] = useState<EventWithVenue | null>(null);
+  const [isResendDialogOpen, setIsResendDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -154,8 +157,6 @@ const Admin = () => {
 
   const fetchRecentMembers = async () => {
     try {
-      // Add cache busting to ensure fresh data
-      const timestamp = Date.now();
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, first_name, last_name, created_at, user_id, is_admin, age_group, gender, email')
@@ -164,9 +165,8 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
-      console.log('Fetched members from database at:', new Date().toISOString());
-      console.log('Fresh data timestamp:', timestamp);
-      console.log('Members count:', profilesData?.length);
+      console.log('Fetched members from database:', profilesData);
+      console.log('Tony Cook profiles found:', profilesData?.filter(p => p.email === 'tonycook396@gmail.com'));
 
       setRecentMembers(profilesData || []);
     } catch (error) {
@@ -720,6 +720,16 @@ const Admin = () => {
     fetchEvents();
   };
 
+  const handleResendInvitation = (event: EventWithVenue) => {
+    setResendingEvent(event);
+    setIsResendDialogOpen(true);
+  };
+
+  const handleResendDialogClose = () => {
+    setIsResendDialogOpen(false);
+    setResendingEvent(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -800,192 +810,207 @@ const Admin = () => {
             {events.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No events yet</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-medium">Event Name</th>
-                      <th className="text-left py-2 px-3 font-medium">Creator</th>
-                      <th className="text-left py-2 px-3 font-medium">Date</th>
-                      <th className="text-left py-2 px-3 font-medium">Status</th>
-                      <th className="text-left py-2 px-3 font-medium">RSVPs</th>
-                      <th className="text-left py-2 px-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {events.map((event) => (
-                      <tr key={event.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-3">
-                          <div className="font-medium">{event.group_name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {event.venue.business_name}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm">
-                            {event.creator.display_name}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm">
-                            {new Date(event.proposed_date).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            RSVP: {new Date(event.rsvp_deadline).toLocaleDateString()}
-                          </div>
-                        </td>
-                         <td className="py-3 px-3">
+              <div className="space-y-6">
+                {events.map((event, index) => (
+                  <div key={event.id}>
+                    <div className="space-y-4">
+                      {/* Main Event Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg">
+                        <div>
+                          <h3 className="font-semibold text-lg">{event.group_name}</h3>
+                          <p className="text-sm text-muted-foreground">{event.venue.business_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            By: {event.creator.display_name}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Event Date</p>
+                          <p className="text-sm">{new Date(event.proposed_date).toLocaleDateString()}</p>
+                          <p className="text-xs text-muted-foreground">
+                            RSVP by: {new Date(event.rsvp_deadline).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">Status</p>
                           {getEventStatusBadge(event.approval_status, event.status)}
-                         </td>
-                         <td className="py-3 px-3">
-                           <div className="text-sm">
-                             {event.rsvps && event.rsvps.length > 0 ? (
-                               <div className="space-y-1">
-                                 <div className="flex items-center gap-1 text-green-600">
-                                   <UserCheck className="h-3 w-3" />
-                                   <span className="font-medium">
-                                     {event.rsvps.filter(r => r.response === 'yes').length} Yes
-                                   </span>
-                                 </div>
-                                 <div className="flex items-center gap-1 text-red-600">
-                                   <X className="h-3 w-3" />
-                                   <span className="font-medium">
-                                     {event.rsvps.filter(r => r.response === 'no').length} No
-                                   </span>
-                                 </div>
-                                 <div className="flex items-center gap-1 text-yellow-600">
-                                   <Clock className="h-3 w-3" />
-                                   <span className="font-medium">
-                                     {event.rsvps.filter(r => r.response === 'maybe').length} Maybe
-                                   </span>
-                                 </div>
-                                 <details className="mt-2">
-                                   <summary className="cursor-pointer text-blue-600 hover:text-blue-700 text-xs">
-                                     View Details
-                                   </summary>
-                                   <div className="mt-2 p-2 bg-muted rounded-md max-h-32 overflow-y-auto">
-                                     {event.rsvps.map((rsvp) => (
-                                       <div key={rsvp.id} className="text-xs border-b border-muted-foreground/20 pb-1 mb-1 last:border-0">
-                                         <div className="font-medium">{rsvp.invitee_email}</div>
-                                         <div className="flex items-center gap-2">
-                                           <Badge 
-                                             variant={
-                                               rsvp.response === 'yes' ? 'default' : 
-                                               rsvp.response === 'no' ? 'destructive' : 'secondary'
-                                             }
-                                             className="text-xs py-0 px-1"
-                                           >
-                                             {rsvp.response || 'No response'}
-                                           </Badge>
-                                           {rsvp.guest_count && rsvp.guest_count > 1 && (
-                                             <span className="text-muted-foreground">+{rsvp.guest_count - 1} guests</span>
-                                           )}
-                                         </div>
-                                         {rsvp.response_message && (
-                                           <div className="italic text-muted-foreground mt-1">
-                                             "{rsvp.response_message}"
-                                           </div>
-                                         )}
-                                         {rsvp.responded_at && (
-                                           <div className="text-muted-foreground">
-                                             {new Date(rsvp.responded_at).toLocaleDateString()}
-                                           </div>
-                                         )}
-                                       </div>
-                                     ))}
-                                   </div>
-                                 </details>
-                               </div>
-                             ) : (
-                               <span className="text-muted-foreground">No responses yet</span>
-                             )}
-                           </div>
-                         </td>
-                         <td className="py-3 px-3">
-                           <div className="flex gap-1">
-                             {/* Edit button for all events */}
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={() => handleEditEvent(event)}
-                               disabled={processingEvents.has(event.id)}
-                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                               title="Edit event"
-                             >
-                               <Edit className="h-4 w-4" />
-                             </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {/* Edit button for all events */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditEvent(event)}
+                            disabled={processingEvents.has(event.id)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="Edit event"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
 
-                             {/* Approval buttons for pending events */}
-                             {event.approval_status === 'pending' && (
-                               <>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventApproval(event.id, 'approved')}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                   title="Approve event"
-                                 >
-                                   <CheckCircle className="h-4 w-4" />
-                                 </Button>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventApproval(event.id, 'rejected')}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                   title="Reject event"
-                                 >
-                                   <XCircle className="h-4 w-4" />
-                                 </Button>
-                               </>
-                             )}
+                          {/* Approval buttons for pending events */}
+                          {event.approval_status === 'pending' && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventApproval(event.id, 'approved')}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                title="Approve event"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventApproval(event.id, 'rejected')}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Reject event"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
 
-                             {/* Management buttons for approved events */}
-                             {event.approval_status === 'approved' && event.status !== 'cancelled' && (
-                               <>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventCancellation(event.id)}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                   title="Cancel event"
-                                 >
-                                   <Settings className="h-4 w-4" />
-                                 </Button>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleEventRemoval(event.id)}
-                                   disabled={processingEvents.has(event.id)}
-                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                   title="Remove event permanently"
-                                 >
-                                   <Trash2 className="h-4 w-4" />
-                                 </Button>
-                               </>
-                             )}
+                          {/* Management buttons for approved events */}
+                          {event.approval_status === 'approved' && event.status !== 'cancelled' && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendInvitation(event)}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title="Resend invitation"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventCancellation(event.id)}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                title="Cancel event"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEventRemoval(event.id)}
+                                disabled={processingEvents.has(event.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Remove event permanently"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
 
-                             {/* Remove button for cancelled events */}
-                             {event.status === 'cancelled' && (
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={() => handleEventRemoval(event.id)}
-                                 disabled={processingEvents.has(event.id)}
-                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                 title="Remove event permanently"
-                               >
-                                 <Trash2 className="h-4 w-4" />
-                               </Button>
-                             )}
-                           </div>
-                         </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          {/* Remove button for cancelled events */}
+                          {event.status === 'cancelled' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEventRemoval(event.id)}
+                              disabled={processingEvents.has(event.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              title="Remove event permanently"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* RSVP Information - Second Line */}
+                      <div className="p-4 bg-background border rounded-lg">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          RSVP Responses
+                        </h4>
+                        {event.rsvps && event.rsvps.length > 0 ? (
+                          <div className="space-y-4">
+                            {/* RSVP Summary */}
+                            <div className="flex gap-6">
+                              <div className="flex items-center gap-2 text-green-600">
+                                <UserCheck className="h-4 w-4" />
+                                <span className="font-medium">
+                                  {event.rsvps.filter(r => r.response === 'yes').length} Yes
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-red-600">
+                                <X className="h-4 w-4" />
+                                <span className="font-medium">
+                                  {event.rsvps.filter(r => r.response === 'no').length} No
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-yellow-600">
+                                <Clock className="h-4 w-4" />
+                                <span className="font-medium">
+                                  {event.rsvps.filter(r => r.response === 'maybe').length} Maybe
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Mail className="h-4 w-4" />
+                                <span className="font-medium">
+                                  {event.rsvps.filter(r => !r.response).length} No Response
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* RSVP Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {event.rsvps.map((rsvp) => (
+                                <div key={rsvp.id} className="p-3 border rounded-md bg-muted/10">
+                                  <div className="font-medium text-sm">{rsvp.invitee_email}</div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge 
+                                      variant={
+                                        rsvp.response === 'yes' ? 'default' : 
+                                        rsvp.response === 'no' ? 'destructive' : 
+                                        rsvp.response === 'maybe' ? 'secondary' : 'outline'
+                                      }
+                                      className="text-xs"
+                                    >
+                                      {rsvp.response || 'No response'}
+                                    </Badge>
+                                    {rsvp.guest_count && rsvp.guest_count > 1 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        +{rsvp.guest_count - 1} guests
+                                      </span>
+                                    )}
+                                  </div>
+                                  {rsvp.response_message && (
+                                    <div className="text-xs italic text-muted-foreground mt-2 bg-muted/20 p-2 rounded">
+                                      "{rsvp.response_message}"
+                                    </div>
+                                  )}
+                                  {rsvp.responded_at && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {new Date(rsvp.responded_at).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">No RSVP responses yet</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Black separator line between events */}
+                    {index < events.length - 1 && (
+                      <div className="my-6">
+                        <div className="h-px bg-black"></div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
@@ -1280,11 +1305,17 @@ const Admin = () => {
           </div>
         )}
 
-        <EditEventDialog
+        <EditEventDialog 
           event={editingEvent}
           isOpen={isEditDialogOpen}
           onClose={handleEditDialogClose}
           onEventUpdated={handleEventUpdated}
+        />
+
+        <ResendInvitationDialog 
+          event={resendingEvent}
+          isOpen={isResendDialogOpen}
+          onClose={handleResendDialogClose}
         />
       </main>
     </div>
