@@ -70,8 +70,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
     setShowOnMobile(isMobile());
   }, []);
 
-  // Don't show on desktop
-  if (!showOnMobile) return null;
+  // Show on all devices for testing, but the functionality will only work on mobile
 
   // Get coordinates from venue or try to extract from Google Maps URL
   const coords = (venue.latitude && venue.longitude)
