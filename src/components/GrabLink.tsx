@@ -37,21 +37,16 @@ export function GrabLink() {
     }
 
     if (isIOS()) {
-      // Try the grab app scheme for iOS
+      // Use a more reliable method for iOS
       const grabUrl = "grab://";
       const appStoreUrl = "https://apps.apple.com/app/id647268330";
       
-      // Create a hidden iframe to test if the app opens
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = grabUrl;
-      document.body.appendChild(iframe);
+      // Try to open the app
+      window.location.href = grabUrl;
       
-      // Fallback to App Store if app doesn't open
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        window.location.href = appStoreUrl;
-      }, 1000);
+      // If the app doesn't open, the user will see a "Cannot Open Page" error
+      // They can then manually go to the App Store
+      // This is actually the most reliable approach on modern iOS
       return;
     }
   }
