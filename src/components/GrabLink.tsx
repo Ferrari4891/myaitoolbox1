@@ -91,7 +91,9 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      const grabScheme = "grab://open";
+      const grabScheme = coords.lat && coords.lng
+        ? `grab://book?destination=${coords.lat},${coords.lng}`
+        : `grab://book?destination=${encodeURIComponent(address!)}`;
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
       window.location.href = grabScheme;
@@ -106,7 +108,9 @@ export function GrabLink({ venue }: GrabLinkProps) {
     }
 
     if (isIOS()) {
-      const scheme = "grab://open";
+      const scheme = coords.lat && coords.lng
+        ? `grab://book?destination=${coords.lat},${coords.lng}`
+        : `grab://book?destination=${encodeURIComponent(address!)}`;
       const appStore = "https://apps.apple.com/app/id647268330";
       
       window.location.href = scheme;
@@ -120,9 +124,12 @@ export function GrabLink({ venue }: GrabLinkProps) {
       return;
     }
 
-    // Desktop fallback (shouldn't reach here due to mobile check above)
+    // Desktop fallback - open Google Maps
     if (venue.google_maps_link) {
       window.open(venue.google_maps_link, "_blank");
+    } else {
+      const encodedAddress = encodeURIComponent(address!);
+      window.open(`https://maps.google.com?q=${encodedAddress}`, "_blank");
     }
   }
 
