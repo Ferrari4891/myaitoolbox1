@@ -30,19 +30,27 @@ export function GrabLink() {
     e.preventDefault();
 
     if (isAndroid()) {
-      // Try to open Grab app, fallback to Play Store
-      window.location.href = "grab://open";
-      setTimeout(() => {
-        window.location.href = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
-      }, 1000);
+      // Use Android intent URL for better compatibility
+      const intentUrl = "intent://open#Intent;scheme=grab;package=com.grabtaxi.passenger;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.grabtaxi.passenger;end";
+      window.location.href = intentUrl;
       return;
     }
 
     if (isIOS()) {
-      // Try to open Grab app, fallback to App Store
-      window.location.href = "grab://open";
+      // Try the grab app scheme for iOS
+      const grabUrl = "grab://";
+      const appStoreUrl = "https://apps.apple.com/app/id647268330";
+      
+      // Create a hidden iframe to test if the app opens
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = grabUrl;
+      document.body.appendChild(iframe);
+      
+      // Fallback to App Store if app doesn't open
       setTimeout(() => {
-        window.location.href = "https://apps.apple.com/app/id647268330";
+        document.body.removeChild(iframe);
+        window.location.href = appStoreUrl;
       }, 1000);
       return;
     }
