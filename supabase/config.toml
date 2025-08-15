@@ -2,9 +2,3 @@ project_id = "urczlhjnztiaxdsatueu"
 
 [functions.send-welcome-email]
 verify_jwt = false
-
-[functions.send-event-invitations]
-verify_jwt = true
-
-[functions.send-event-rejection]
-verify_jwt = true

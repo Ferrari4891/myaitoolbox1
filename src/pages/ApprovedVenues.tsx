@@ -24,8 +24,6 @@ interface Venue {
   image_3_url?: string;
   average_rating?: number;
   rating_count?: number;
-  latitude?: number;
-  longitude?: number;
 }
 
 interface VenueRating {
@@ -239,7 +237,7 @@ const ApprovedVenues = () => {
                     <div className="h-px bg-border"></div>
                     
                     <div className="space-y-3">
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-wrap gap-3">
                         <Button
                           variant="link"
                           size="sm"
@@ -249,6 +247,7 @@ const ApprovedVenues = () => {
                           <ExternalLink className="h-3 w-3 mr-1" />
                           View on Google Maps
                         </Button>
+                        <GrabLink venue={venue} />
                       </div>
                       
                       {venue.facebook_link && (
@@ -268,9 +267,6 @@ const ApprovedVenues = () => {
                           </div>
                         </>
                       )}
-                      
-                      <div className="h-px bg-border"></div>
-                      <GrabLink venue={venue} />
                     </div>
                   </div>
                   

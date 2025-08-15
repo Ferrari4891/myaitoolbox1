@@ -35,13 +35,6 @@ interface EventDetails {
   venue?: {
     business_name: string;
     address: string;
-    description: string;
-    image_1_url?: string;
-    image_2_url?: string;
-    image_3_url?: string;
-    google_maps_link?: string;
-    average_rating?: number;
-    rating_count?: number;
   };
 }
 
@@ -144,7 +137,7 @@ const EventRSVP = () => {
         // Get venue details separately
         const { data: venue, error: venueError } = await supabase
           .from("venues")
-          .select("business_name, address, description, image_1_url, image_2_url, image_3_url, google_maps_link, average_rating, rating_count")
+          .select("business_name, address")
           .eq("id", invitation.venue_id)
           .maybeSingle();
 
@@ -310,71 +303,6 @@ const EventRSVP = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Venue Details Card */}
-          {eventDetails.venue && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Venue Details
-                </CardTitle>
-                <CardDescription>
-                  Learn more about the venue before you decide
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Venue Image */}
-                  {eventDetails.venue.image_1_url && (
-                    <div className="md:w-1/3">
-                      <img
-                        src={eventDetails.venue.image_1_url}
-                        alt={eventDetails.venue.business_name}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Venue Info */}
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{eventDetails.venue.business_name}</h3>
-                      <p className="text-muted-foreground">{eventDetails.venue.address}</p>
-                    </div>
-                    
-                    {eventDetails.venue.description && (
-                      <p className="text-sm">{eventDetails.venue.description}</p>
-                    )}
-                    
-                    {eventDetails.venue.average_rating && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-yellow-500">⭐</span>
-                        <span>{Number(eventDetails.venue.average_rating).toFixed(1)}</span>
-                        {eventDetails.venue.rating_count && (
-                          <span className="text-muted-foreground">
-                            ({eventDetails.venue.rating_count} reviews)
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    
-                    {eventDetails.venue.google_maps_link && (
-                      <a
-                        href={eventDetails.venue.google_maps_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                      >
-                        <MapPin className="h-4 w-4" />
-                        View on Google Maps
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* RSVP Form Card */}
           <Card>

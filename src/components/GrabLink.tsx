@@ -70,7 +70,8 @@ export function GrabLink({ venue }: GrabLinkProps) {
     setShowOnMobile(isMobile());
   }, []);
 
-  // Show on all devices for testing, but the functionality will only work on mobile
+  // Don't show on desktop
+  if (!showOnMobile) return null;
 
   // Get coordinates from venue or try to extract from Google Maps URL
   const coords = (venue.latitude && venue.longitude)
@@ -91,50 +92,38 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      const grabScheme = "grab://open?screenType=MAIN";
+      const grabScheme = "grab://open";
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      // Create a hidden iframe to test if the app opens
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = grabScheme;
-      document.body.appendChild(iframe);
+      window.location.href = grabScheme;
       
-      // Clean up the iframe after a short delay
+      // Fallback to Play Store if app not installed
       setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 100);
-      
-      // If still visible after a delay, redirect to Play Store
-      setTimeout(() => {
-        if (!document.hidden) {
-          window.open(playStore, '_blank');
+        if (document.hasFocus() && document.visibilityState === "visible") {
+          window.location.href = playStore;
         }
-      }, 2000);
+      }, 1500);
       return;
     }
 
     if (isIOS()) {
-      const scheme = "grab://open?screenType=MAIN";
+      const scheme = "grab://open";
       const appStore = "https://apps.apple.com/app/id647268330";
       
       window.location.href = scheme;
       
       // Fallback to App Store if app not installed
       setTimeout(() => {
-        if (!document.hidden) {
-          window.open(appStore, '_blank');
+        if (document.visibilityState === "visible") {
+          window.location.href = appStore;
         }
-      }, 2000);
+      }, 1200);
       return;
     }
 
-    // Desktop fallback - open Google Maps
+    // Desktop fallback (shouldn't reach here due to mobile check above)
     if (venue.google_maps_link) {
       window.open(venue.google_maps_link, "_blank");
-    } else {
-      const encodedAddress = encodeURIComponent(address!);
-      window.open(`https://maps.google.com?q=${encodedAddress}`, "_blank");
     }
   }
 
@@ -159,7 +148,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
           e.currentTarget.style.display = 'none';
         }}
       />
-      <span className="text-sm font-medium">Grab a Grab</span>
+      <span className="text-sm font-medium">Grab</span>
     </a>
   );
 }

@@ -10,7 +10,6 @@ const corsHeaders = {
 interface RequestBody {
   invitationId: string;
   isUpdate?: boolean;
-  recipientEmail?: string; // For individual resending
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,7 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { invitationId, isUpdate = false, recipientEmail }: RequestBody = await req.json();
+    const { invitationId, isUpdate = false }: RequestBody = await req.json();
 
     // Get invitation details from database
     const { data: invitation, error: invitationError } = await supabase
@@ -58,38 +57,26 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to fetch venue details: ${venueError?.message || 'Venue not found'}`);
     }
 
-    // Get member emails from profiles
-    let memberEmails: string[];
-    
-    if (recipientEmail) {
-      // Individual resend - validate email and use single recipient
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(recipientEmail)) {
-        throw new Error('Invalid email format');
-      }
-      memberEmails = [recipientEmail];
-    } else {
-      // Bulk send - get all member emails
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('email')
-        .not('email', 'is', null);
+    // Get all member emails from profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('email')
+      .not('email', 'is', null);
 
-      if (profilesError) {
-        throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
-      }
+    if (profilesError) {
+      throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
+    }
 
-      if (!profiles || profiles.length === 0) {
-        throw new Error('No member emails found');
-      }
+    if (!profiles || profiles.length === 0) {
+      throw new Error('No member emails found');
+    }
 
-      memberEmails = profiles
-        .map(p => p.email)
-        .filter(email => email && email.trim() !== '');
+    const memberEmails = profiles
+      .map(p => p.email)
+      .filter(email => email && email.trim() !== '');
 
-      if (memberEmails.length === 0) {
-        throw new Error('No valid member emails found');
-      }
+    if (memberEmails.length === 0) {
+      throw new Error('No valid member emails found');
     }
 
     // Format the event date and time
@@ -113,8 +100,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     };
 
-    // Create RSVP URL - use the published production URL
-    const rsvpUrl = `https://gallopinggeezers.online/event-rsvp?token=${invitation.invite_token}`;
+    // Create RSVP URL - point to the actual application
+    const rsvpUrl = `https://fd4c5f74-86bb-4f7e-bc3d-7c635105148c.lovableproject.com/event-rsvp?token=${invitation.invite_token}`;
 
     // Create email content
     const emailSubject = isUpdate ? `📝 Event Updated: ${invitation.group_name}` : `🎉 You're Invited: ${invitation.group_name}`;
@@ -182,7 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${rsvpUrl}" 
-               style="background: #22c55e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 0; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
               ${isUpdate ? '📝 Update RSVP' : '🎯 RSVP Now'}
             </a>
           </div>
@@ -253,9 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: recipientEmail 
-          ? `Invitation sent to ${recipientEmail}` 
-          : `Invitations sent to ${successCount} members`,
+        message: `Invitations sent to ${successCount} members`,
         details: {
           successful: successCount,
           failed: failureCount,
