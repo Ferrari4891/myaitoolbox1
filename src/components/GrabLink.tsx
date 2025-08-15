@@ -91,32 +91,41 @@ export function GrabLink({ venue }: GrabLinkProps) {
     e.preventDefault();
 
     if (isAndroid()) {
-      const grabScheme = "grab://open";
+      const grabScheme = "grab://open?screenType=MAIN";
       const playStore = "https://play.google.com/store/apps/details?id=com.grabtaxi.passenger";
       
-      window.location.href = grabScheme;
+      // Create a hidden iframe to test if the app opens
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = grabScheme;
+      document.body.appendChild(iframe);
       
-      // Fallback to Play Store if app not installed
+      // Clean up the iframe after a short delay
       setTimeout(() => {
-        if (document.hasFocus() && document.visibilityState === "visible") {
-          window.location.href = playStore;
+        document.body.removeChild(iframe);
+      }, 100);
+      
+      // If still visible after a delay, redirect to Play Store
+      setTimeout(() => {
+        if (!document.hidden) {
+          window.open(playStore, '_blank');
         }
-      }, 1500);
+      }, 2000);
       return;
     }
 
     if (isIOS()) {
-      const scheme = "grab://open";
+      const scheme = "grab://open?screenType=MAIN";
       const appStore = "https://apps.apple.com/app/id647268330";
       
       window.location.href = scheme;
       
       // Fallback to App Store if app not installed
       setTimeout(() => {
-        if (document.visibilityState === "visible") {
-          window.location.href = appStore;
+        if (!document.hidden) {
+          window.open(appStore, '_blank');
         }
-      }, 1200);
+      }, 2000);
       return;
     }
 
