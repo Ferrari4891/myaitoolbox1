@@ -148,7 +148,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
           e.currentTarget.style.display = 'none';
         }}
       />
-      <span className="text-sm font-medium">Grab</span>
+      <span className="text-sm font-medium">Grab a Grab</span>
     </a>
   );
 }
