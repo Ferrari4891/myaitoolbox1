@@ -70,7 +70,7 @@ const Navigation = () => {
           { label: "Schedule Event", path: "/schedule-event" },
         ]
       : [
-          { label: "Join Now", path: "/join", isButton: true },
+          { label: "Join Now", path: "/join-now", isButton: true },
           { label: "Sign In", path: "/sign-in" },
           { label: "How To", path: "/how-to" },
           { label: "Approved Venues", path: "/approved-venues" },
