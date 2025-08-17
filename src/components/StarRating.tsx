@@ -126,7 +126,7 @@ const StarRating = ({
             </p>
             <div className="flex gap-2">
               <Button asChild className="flex-1">
-                <Link to="/join-now">Join Now</Link>
+                <a href="#/join-now">Join Now</a>
               </Button>
               <Button 
                 variant="outline" 

@@ -227,7 +227,7 @@ const SignIn = () => {
                 <p className="text-sm text-muted-foreground">
                   Not a member yet?{" "}
                   <button
-                    onClick={() => navigate('/join-now')}
+                    onClick={() => { window.location.hash = '/join-now'; }}
                     className="text-primary hover:text-primary/80 font-medium"
                   >
                     Join now

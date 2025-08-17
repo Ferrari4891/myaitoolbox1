@@ -21,7 +21,7 @@ const Index = () => {
 
           <div className="text-center">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg transition-smooth shadow-elegant">
-              <Link to="/join-now">Become a Geezer</Link>
+              <a href="#/join-now">Become a Geezer</a>
             </Button>
           </div>
 

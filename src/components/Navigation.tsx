@@ -112,22 +112,35 @@ const Navigation = () => {
           }`}
         >
           <div className="px-4 py-6 space-y-4">
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={`block w-full text-left ${
-                  item.isButton
-                    ? "bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90"
-                    : `text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md ${
-                        isActive(item.path) ? "bg-gray-100 font-semibold" : ""
-                      }`
-                } transition-smooth`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {menuItems.map((item) => {
+              const commonClasses = `${
+                item.isButton
+                  ? "bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90"
+                  : `text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md ${
+                      isActive(item.path) ? "bg-gray-100 font-semibold" : ""
+                    }`
+              } transition-smooth`;
+
+              return item.path === "/join-now" ? (
+                <a
+                  key={item.path}
+                  href="#/join-now"
+                  onClick={() => setIsOpen(false)}
+                  className={commonClasses}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsOpen(false)}
+                  className={commonClasses}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             
             {isAuthenticated && (
               <>
