@@ -22,7 +22,11 @@
           var path = window.location.pathname;
           var search = window.location.search || '';
           if (path && path !== '/' && !window.location.hash) {
-            window.location.replace('/#' + path + search);
+            if (path === '/join') {
+              window.location.replace('/#/join-now' + search);
+            } else {
+              window.location.replace('/#' + path + search);
+            }
           }
         } catch (e) {}
       })();
