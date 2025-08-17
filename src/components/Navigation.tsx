@@ -111,9 +111,9 @@ const Navigation = () => {
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="px-4 py-6 space-y-4">
+          <div className="px-4 py-6 space-y-2">
             {menuItems.map((item) => {
-              const commonClasses = `${
+              const commonClasses = `block w-full text-left ${
                 item.isButton
                   ? "bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90"
                   : `text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md ${
