@@ -20,7 +20,7 @@ const Index = () => {
           </div>
 
           <div className="text-center">
-            <Link to="/join">
+            <Link to="/join-now">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg transition-smooth shadow-elegant">
                 Become a Geezer
               </Button>
