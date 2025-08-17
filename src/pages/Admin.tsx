@@ -32,6 +32,7 @@ interface RecentMember {
   first_name: string | null;
   last_name: string | null;
   created_at: string;
+  member_since: string;
   user_id: string;
   email: string | null;
   is_admin?: boolean;
@@ -159,8 +160,8 @@ const Admin = () => {
     try {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, first_name, last_name, created_at, user_id, is_admin, age_group, gender, email')
-        .order('created_at', { ascending: false })
+        .select('id, display_name, first_name, last_name, created_at, member_since, user_id, is_admin, age_group, gender, email')
+        .order('member_since', { ascending: false })
         .limit(50);
 
       if (profilesError) throw profilesError;
@@ -1062,7 +1063,14 @@ const Admin = () => {
                         </td>
                         <td className="py-3 px-3">
                           <div className="text-sm text-muted-foreground">
-                            {new Date(member.created_at).toLocaleDateString()}
+                            <div>{new Date(member.member_since).toLocaleDateString()}</div>
+                            <div className="text-xs opacity-75">
+                              {new Date(member.member_since).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                second: '2-digit'
+                              })}
+                            </div>
                           </div>
                         </td>
                         <td className="py-3 px-3">
