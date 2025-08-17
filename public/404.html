@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function () {
+        try {
+          var path = window.location.pathname || '/';
+          var search = window.location.search || '';
+          if (!window.location.hash) {
+            if (path === '/join') {
+              window.location.replace('/#/join-now' + search);
+            } else if (path && path !== '/') {
+              window.location.replace('/#' + path + search);
+            } else {
+              window.location.replace('/#/');
+            }
+          }
+        } catch (e) {
+          // noop
+        }
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=/#/" />
+    </noscript>
+  </head>
+  <body>
+    <p>Redirecting…</p>
+  </body>
+</html>
