@@ -51,7 +51,7 @@ const JoinNow = () => {
             last_name: formData.lastName,
             display_name: `${formData.firstName} ${formData.lastName}`,
           },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/#/auth-callback`
         }
       });
 

@@ -18,6 +18,7 @@ import ScheduleEvent from "./pages/ScheduleEvent";
 import EventRSVP from "./pages/EventRSVP";
 import Admin from "./pages/Admin";
 import AdminSignIn from "./pages/AdminSignIn";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/edit-venue/:id" element={<EditVenue />} />
+            <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/join" element={<Navigate to="/join-now" replace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
