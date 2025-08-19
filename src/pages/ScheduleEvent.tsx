@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Calendar, Clock, MapPin, Users, Mail } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Mail, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +33,19 @@ const eventSchema = z.object({
   rsvpDeadline: z.date({
     required_error: "Please select an RSVP deadline",
   }),
+  inviteType: z.enum(["all", "select"], {
+    required_error: "Please select invitation type",
+  }),
+  selectedMembers: z.array(z.string()).optional(),
   customMessage: z.string().optional(),
+}).refine((data) => {
+  if (data.inviteType === "select" && (!data.selectedMembers || data.selectedMembers.length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please select at least one member to invite",
+  path: ["selectedMembers"],
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -43,10 +56,20 @@ interface Venue {
   address: string;
 }
 
+interface Member {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+}
+
 const ScheduleEvent = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<EventFormData>({
@@ -58,6 +81,8 @@ const ScheduleEvent = () => {
       eventTime: "",
       venueId: "",
       rsvpDeadline: undefined,
+      inviteType: "all",
+      selectedMembers: [],
       customMessage: "",
     },
   });
@@ -65,28 +90,38 @@ const ScheduleEvent = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // Fetch approved venues
-    const fetchVenues = async () => {
+    // Fetch approved venues and members
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch venues
+        const { data: venuesData, error: venuesError } = await supabase
           .from("venues")
           .select("id, business_name, address")
           .eq("status", "approved")
           .order("business_name");
 
-        if (error) throw error;
-        setVenues(data || []);
+        if (venuesError) throw venuesError;
+        setVenues(venuesData || []);
+
+        // Fetch members
+        const { data: membersData, error: membersError } = await supabase
+          .from("profiles")
+          .select("id, user_id, display_name, email, first_name, last_name")
+          .order("display_name");
+
+        if (membersError) throw membersError;
+        setMembers(membersData || []);
       } catch (error) {
-        console.error("Error fetching venues:", error);
+        console.error("Error fetching data:", error);
         toast({
           title: "Error",
-          description: "Failed to load venues. Please try again.",
+          description: "Failed to load data. Please try again.",
           variant: "destructive",
         });
       }
     };
 
-    fetchVenues();
+    fetchData();
   }, [isAuthenticated, toast]);
 
   const onSubmit = async (data: EventFormData) => {
@@ -317,7 +352,7 @@ const ScheduleEvent = () => {
                         )}
                       />
 
-                      <FormField
+                       <FormField
                         control={form.control}
                         name="rsvpDeadline"
                         render={({ field }) => (
@@ -361,6 +396,91 @@ const ScheduleEvent = () => {
                         )}
                       />
                     </div>
+                  </div>
+
+                  {/* Invitation Type Selection */}
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="inviteType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <UserCheck className="h-4 w-4" />
+                            Who would you like to invite?
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select invitation type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="all">📢 Invite all members</SelectItem>
+                              <SelectItem value="select">👥 Select specific members</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Member Selection - Only show when "select" is chosen */}
+                    {form.watch("inviteType") === "select" && (
+                      <FormField
+                        control={form.control}
+                        name="selectedMembers"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Select Members to Invite</FormLabel>
+                            <Card className="p-4 max-h-60 overflow-y-auto">
+                              <div className="space-y-3">
+                                {members.map((member) => {
+                                  const displayName = member.display_name || 
+                                    `${member.first_name || ''} ${member.last_name || ''}`.trim() || 
+                                    member.email || 
+                                    'Unknown Member';
+                                  
+                                  return (
+                                    <div key={member.user_id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={member.user_id}
+                                        checked={field.value?.includes(member.user_id) || false}
+                                        onCheckedChange={(checked) => {
+                                          const current = field.value || [];
+                                          if (checked) {
+                                            field.onChange([...current, member.user_id]);
+                                          } else {
+                                            field.onChange(current.filter(id => id !== member.user_id));
+                                          }
+                                        }}
+                                      />
+                                      <Label 
+                                        htmlFor={member.user_id} 
+                                        className="flex-1 cursor-pointer"
+                                      >
+                                        <div>
+                                          <div className="font-medium">{displayName}</div>
+                                          {member.email && (
+                                            <div className="text-sm text-muted-foreground">{member.email}</div>
+                                          )}
+                                        </div>
+                                      </Label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {members.length === 0 && (
+                                <p className="text-muted-foreground text-center py-4">
+                                  No members found
+                                </p>
+                              )}
+                            </Card>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
 
                   {/* Full width section */}
