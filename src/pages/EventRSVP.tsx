@@ -189,7 +189,18 @@ const EventRSVP = () => {
           responded_at: new Date().toISOString(),
         });
 
-      if (error) throw error;
+      if (error) {
+        // Handle duplicate RSVP case
+        if (error.code === "23505" && error.message.includes("invitation_rsvps_invitation_id_invitee_email_key")) {
+          toast({
+            title: "RSVP Already Submitted",
+            description: "You have already submitted an RSVP for this event. Only one response per email address is allowed.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
 
       setSubmitted(true);
       toast({
