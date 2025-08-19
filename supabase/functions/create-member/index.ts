@@ -60,6 +60,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (createError) {
       console.error('Error creating user:', createError);
+      
+      // Handle specific error cases
+      if (createError.message?.includes('A user with this email address has already been registered')) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: `A user with the email ${email} already exists. Please use a different email address.`
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        });
+      }
+      
       throw createError;
     }
 
