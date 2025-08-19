@@ -13,9 +13,7 @@ const Index = () => {
               Welcome to <br className="md:hidden" />Gallopinggeezers.online
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Join fellow members in organizing and participating in amazing activities. 
-              From coffee meetups to lunch gatherings and dinner experiences - 
-              there's always something exciting happening in our community.
+              Welcome to Gallopingeezers.com, where we've somehow convinced adults around the world that the best way to spend an evening is arguing about wine pairings while pretending we know the difference between "oaky" and "just tastes like wine." Our quirky little member-based Wine & Dine club has chapters scattered across the globe, filled with food lovers who take their appetizers seriously but themselves not so much. Come join our merry band of culinary adventurers – we promise good food, great wine, and absolutely no judgment when you accidentally use the salad fork for your main course.
             </p>
           </div>
 
