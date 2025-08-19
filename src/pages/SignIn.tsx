@@ -16,6 +16,7 @@ const SignIn = () => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,6 +96,33 @@ const SignIn = () => {
       toast.error(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsResettingPassword(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast.error("Please enter your email address first.");
+      return;
+    }
+
+    setIsResendingVerification(true);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/#/auth-callback`
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Verification email resent! Please check your inbox.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend verification email. Please try again.");
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -223,16 +251,30 @@ const SignIn = () => {
                 </form>
               )}
               
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Not a member yet?{" "}
-                  <button
-                    onClick={() => { window.location.hash = '/join-now'; }}
-                    className="text-primary hover:text-primary/80 font-medium"
+              <div className="mt-6 space-y-4">
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleResendVerification}
+                    disabled={isResendingVerification || !email}
+                    className="w-full"
                   >
-                    Join now
-                  </button>
-                </p>
+                    {isResendingVerification ? "Resending..." : "Resend Email Verification"}
+                  </Button>
+                </div>
+                
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Not a member yet?{" "}
+                    <button
+                      onClick={() => { window.location.hash = '/join-now'; }}
+                      className="text-primary hover:text-primary/80 font-medium"
+                    >
+                      Join now
+                    </button>
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
