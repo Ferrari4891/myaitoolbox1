@@ -39,7 +39,9 @@ const handler = async (req: Request): Promise<Response> => {
         custom_message,
         invite_token,
         venue_id,
-        creator_id
+        creator_id,
+        invite_type,
+        selected_member_ids
       `)
       .eq('id', invitationId)
       .single();
@@ -69,23 +71,47 @@ const handler = async (req: Request): Promise<Response> => {
       }
       memberEmails = [recipientEmail];
     } else {
-      // Bulk send - get all member emails
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('email')
-        .not('email', 'is', null);
+      // Bulk send - handle different invitation types
+      if (invitation.invite_type === 'select' && invitation.selected_member_ids) {
+        // Get emails for selected members only
+        const selectedIds = JSON.parse(invitation.selected_member_ids);
+        
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('email')
+          .in('user_id', selectedIds)
+          .not('email', 'is', null);
 
-      if (profilesError) {
-        throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
+        if (profilesError) {
+          throw new Error(`Failed to fetch selected member emails: ${profilesError.message}`);
+        }
+
+        if (!profiles || profiles.length === 0) {
+          throw new Error('No selected member emails found');
+        }
+
+        memberEmails = profiles
+          .map(p => p.email)
+          .filter(email => email && email.trim() !== '');
+      } else {
+        // Get all member emails (default behavior for 'all' or legacy invitations)
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('email')
+          .not('email', 'is', null);
+
+        if (profilesError) {
+          throw new Error(`Failed to fetch member emails: ${profilesError.message}`);
+        }
+
+        if (!profiles || profiles.length === 0) {
+          throw new Error('No member emails found');
+        }
+
+        memberEmails = profiles
+          .map(p => p.email)
+          .filter(email => email && email.trim() !== '');
       }
-
-      if (!profiles || profiles.length === 0) {
-        throw new Error('No member emails found');
-      }
-
-      memberEmails = profiles
-        .map(p => p.email)
-        .filter(email => email && email.trim() !== '');
 
       if (memberEmails.length === 0) {
         throw new Error('No valid member emails found');
