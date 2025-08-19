@@ -46,7 +46,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Create the user with temporary password
     const tempPassword = "geezer";
-    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    let userData;
+    let userId;
+
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: tempPassword,
       email_confirm: true, // Auto-confirm the email
@@ -61,40 +64,70 @@ const handler = async (req: Request): Promise<Response> => {
     if (createError) {
       console.error('Error creating user:', createError);
       
-      // Handle specific error cases
+      // Handle existing user case
       if (createError.message?.includes('A user with this email address has already been registered')) {
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: `A user with the email ${email} already exists. Please use a different email address.`,
-          code: 'EMAIL_EXISTS'
-        }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
+        console.log('User already exists, finding existing user and updating profile...');
+        
+        // Find the existing user
+        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+        if (listError) {
+          console.error('Error listing users:', listError);
+          throw listError;
+        }
+        
+        const existingUser = existingUsers.users.find(user => user.email === email);
+        if (!existingUser) {
+          throw new Error('User exists but could not be found');
+        }
+        
+        userId = existingUser.id;
+        console.log('Found existing user:', userId);
+        
+        // Reset their password to the temporary password
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password: tempPassword,
+          user_metadata: {
+            display_name: displayName,
+            first_name: firstName || '',
+            last_name: lastName || '',
+            password_change_required: true
+          }
         });
+        
+        if (updateError) {
+          console.error('Error updating existing user:', updateError);
+          throw updateError;
+        }
+        
+        console.log('Successfully reset password for existing user');
+      } else {
+        throw createError;
       }
-      
-      throw createError;
+    } else {
+      userData = createData;
+      userId = userData.user.id;
+      console.log('User created successfully:', userId);
     }
 
-    console.log('User created successfully:', userData.user.id);
-
-    // Update the profile with additional info (the trigger should create it, but we update it)
+    // Upsert the profile with additional info
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({
+      .upsert({
+        user_id: userId,
         display_name: displayName,
         first_name: firstName || '',
         last_name: lastName || '',
         email: email
-      })
-      .eq('user_id', userData.user.id);
+      }, {
+        onConflict: 'user_id'
+      });
 
     if (profileError) {
-      console.warn('Profile update error (may be normal):', profileError);
+      console.error('Profile upsert error:', profileError);
+      throw profileError;
     }
+    
+    console.log('Profile upserted successfully for user:', userId);
 
     // Render the email template
     const emailHtml = await renderAsync(
@@ -117,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      userId: userData.user.id,
+      userId: userId,
       messageId: emailResponse.data?.id 
     }), {
       status: 200,
