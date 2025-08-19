@@ -25,7 +25,7 @@ const HeroSection = ({
       {/* Content */}
       <div className="relative z-10 flex items-center justify-center h-full px-4">
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-hero-text mb-4 drop-shadow-lg">
+          <h1 className="text-6xl md:text-8xl font-bold text-hero-text mb-4 drop-shadow-lg">
             {title}
           </h1>
           {subtitle && (
