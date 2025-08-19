@@ -151,16 +151,22 @@ const ScheduleEvent = () => {
           proposed_date: proposedDate.toISOString(),
           rsvp_deadline: data.rsvpDeadline.toISOString(),
           custom_message: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,
-          approval_status: 'pending'
+          approval_status: 'pending',
+          invite_type: data.inviteType,
+          selected_member_ids: data.inviteType === 'select' ? JSON.stringify(data.selectedMembers) : null
         })
         .select()
         .single();
 
       if (invitationError) throw invitationError;
 
+      const inviteText = data.inviteType === 'all' 
+        ? 'all members' 
+        : `${data.selectedMembers?.length || 0} selected member(s)`;
+
       toast({
         title: "Event submitted successfully!",
-        description: "Your event has been submitted for admin approval. You'll be notified once it's approved and invitations are sent.",
+        description: `Your event has been submitted for admin approval. Once approved, invitations will be sent to ${inviteText}.`,
       });
 
       // Reset form

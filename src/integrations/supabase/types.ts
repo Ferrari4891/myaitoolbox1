@@ -359,8 +359,10 @@ export type Database = {
           group_name: string
           id: string
           invite_token: string
+          invite_type: string
           proposed_date: string
           rsvp_deadline: string
+          selected_member_ids: Json | null
           status: string
           updated_at: string
           venue_id: string
@@ -373,8 +375,10 @@ export type Database = {
           group_name: string
           id?: string
           invite_token?: string
+          invite_type?: string
           proposed_date: string
           rsvp_deadline: string
+          selected_member_ids?: Json | null
           status?: string
           updated_at?: string
           venue_id: string
@@ -387,8 +391,10 @@ export type Database = {
           group_name?: string
           id?: string
           invite_token?: string
+          invite_type?: string
           proposed_date?: string
           rsvp_deadline?: string
+          selected_member_ids?: Json | null
           status?: string
           updated_at?: string
           venue_id?: string
