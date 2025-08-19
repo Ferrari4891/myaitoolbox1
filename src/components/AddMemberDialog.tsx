@@ -62,13 +62,26 @@ export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialo
         onMemberAdded();
         onClose();
       } else {
-        throw new Error(data.error || 'Failed to create member');
+        toast({
+          title: "Cannot Create Member",
+          description: data.error || "A user with this email may already exist. Try a different email or reset their password.",
+          variant: "destructive",
+        });
+        return;
       }
     } catch (error: any) {
       console.error('Error creating member:', error);
+      let description = error?.message || "Failed to create member. Please try again.";
+      try {
+        const body = (error as any)?.context?.body;
+        if (body) {
+          const parsed = typeof body === 'string' ? JSON.parse(body) : body;
+          if (parsed?.error) description = parsed.error;
+        }
+      } catch {}
       toast({
         title: "Error Creating Member",
-        description: error.message || "Failed to create member. Please try again.",
+        description,
         variant: "destructive",
       });
     } finally {
