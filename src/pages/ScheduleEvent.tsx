@@ -404,89 +404,94 @@ const ScheduleEvent = () => {
                     </div>
                   </div>
 
-                  {/* Invitation Type Selection */}
+                  {/* Member Selection */}
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="inviteType"
+                      name="selectedMembers"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <UserCheck className="h-4 w-4" />
-                            Who would you like to invite?
+                            Select Members to Invite
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select invitation type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="all">📢 Invite all members</SelectItem>
-                              <SelectItem value="select">👥 Select specific members</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <div className="space-y-3">
+                              {/* Members checkbox list */}
+                              <Card className="p-4 max-h-64 overflow-y-auto">
+                                <div className="space-y-3">
+                                  {members.map((member) => {
+                                    const displayName = member.display_name || 
+                                      `${member.first_name || ''} ${member.last_name || ''}`.trim() || 
+                                      member.email || 
+                                      'Unknown Member';
+                                    
+                                    return (
+                                      <div key={member.user_id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={member.user_id}
+                                          checked={field.value?.includes(member.user_id) || false}
+                                          onCheckedChange={(checked) => {
+                                            const current = field.value || [];
+                                            if (checked) {
+                                              field.onChange([...current, member.user_id]);
+                                            } else {
+                                              field.onChange(current.filter(id => id !== member.user_id));
+                                            }
+                                          }}
+                                        />
+                                        <Label 
+                                          htmlFor={member.user_id} 
+                                          className="flex-1 cursor-pointer"
+                                        >
+                                          <div>
+                                            <div className="font-medium">{displayName}</div>
+                                            {member.email && (
+                                              <div className="text-sm text-muted-foreground">{member.email}</div>
+                                            )}
+                                          </div>
+                                        </Label>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {members.length === 0 && (
+                                  <p className="text-muted-foreground text-center py-4">
+                                    No members found
+                                  </p>
+                                )}
+                              </Card>
+                              
+                              {/* Invite all members checkbox */}
+                              <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-md">
+                                <Checkbox
+                                  id="invite-all-members"
+                                  checked={field.value?.length === members.length && members.length > 0}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      // Select all members
+                                      field.onChange(members.map(member => member.user_id));
+                                      form.setValue("inviteType", "all");
+                                    } else {
+                                      // Deselect all members
+                                      field.onChange([]);
+                                      form.setValue("inviteType", "select");
+                                    }
+                                  }}
+                                />
+                                <Label 
+                                  htmlFor="invite-all-members"
+                                  className="text-sm font-medium cursor-pointer"
+                                >
+                                  📢 Invite all members
+                                </Label>
+                              </div>
+                            </div>
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
-                    {/* Member Selection - Only show when "select" is chosen */}
-                    {form.watch("inviteType") === "select" && (
-                      <FormField
-                        control={form.control}
-                        name="selectedMembers"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Select Members to Invite</FormLabel>
-                            <Card className="p-4 max-h-60 overflow-y-auto">
-                              <div className="space-y-3">
-                                {members.map((member) => {
-                                  const displayName = member.display_name || 
-                                    `${member.first_name || ''} ${member.last_name || ''}`.trim() || 
-                                    member.email || 
-                                    'Unknown Member';
-                                  
-                                  return (
-                                    <div key={member.user_id} className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={member.user_id}
-                                        checked={field.value?.includes(member.user_id) || false}
-                                        onCheckedChange={(checked) => {
-                                          const current = field.value || [];
-                                          if (checked) {
-                                            field.onChange([...current, member.user_id]);
-                                          } else {
-                                            field.onChange(current.filter(id => id !== member.user_id));
-                                          }
-                                        }}
-                                      />
-                                      <Label 
-                                        htmlFor={member.user_id} 
-                                        className="flex-1 cursor-pointer"
-                                      >
-                                        <div>
-                                          <div className="font-medium">{displayName}</div>
-                                          {member.email && (
-                                            <div className="text-sm text-muted-foreground">{member.email}</div>
-                                          )}
-                                        </div>
-                                      </Label>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              {members.length === 0 && (
-                                <p className="text-muted-foreground text-center py-4">
-                                  No members found
-                                </p>
-                              )}
-                            </Card>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
                   </div>
 
                   {/* Full width section */}
