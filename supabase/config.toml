@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.send-event-rejection]
 verify_jwt = true
+
+[functions.create-member]
+verify_jwt = true
+
+[functions.purge-member]
+verify_jwt = true
