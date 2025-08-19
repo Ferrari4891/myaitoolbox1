@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail, UserPlus } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
 import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
+import { AddMemberDialog } from "@/components/AddMemberDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -91,6 +92,7 @@ const Admin = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [resendingEvent, setResendingEvent] = useState<EventWithVenue | null>(null);
   const [isResendDialogOpen, setIsResendDialogOpen] = useState(false);
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -1020,10 +1022,19 @@ const Admin = () => {
         {/* Recent Members Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Member Directory
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Member Directory
+              </CardTitle>
+              <Button
+                onClick={() => setIsAddMemberDialogOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Add Member
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {recentMembers.length === 0 ? (
@@ -1324,6 +1335,12 @@ const Admin = () => {
           event={resendingEvent}
           isOpen={isResendDialogOpen}
           onClose={handleResendDialogClose}
+        />
+
+        <AddMemberDialog 
+          open={isAddMemberDialogOpen}
+          onClose={() => setIsAddMemberDialogOpen(false)}
+          onMemberAdded={fetchRecentMembers}
         />
       </main>
     </div>
