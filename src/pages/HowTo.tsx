@@ -1,15 +1,8 @@
-
 import HeroSection from "@/components/HeroSection";
 import confusedSeniorImage from "@/assets/confused-senior.jpg";
-
 const HowTo = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <HeroSection
-        backgroundImage={confusedSeniorImage}
-        title="WTF"
-        height="h-64 md:h-96"
-      />
+  return <div className="min-h-screen bg-background">
+      <HeroSection backgroundImage={confusedSeniorImage} title="WTF" height="h-64 md:h-96" />
 
       <main className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,9 +17,7 @@ const HowTo = () => {
 
           <div className="grid gap-8 md:gap-12">
             <div className="bg-card rounded-lg p-8 shadow-lg border border-border">
-              <h3 className="text-2xl font-semibold text-card-foreground mb-4">
-                Step 1: Join Our Community
-              </h3>
+              <h3 className="text-2xl font-semibold text-card-foreground mb-4">Step 1: Become a Geezer</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
                 Sign up using our simple form. We only need your name and email address 
                 to get you started. No complicated registration process!
@@ -72,8 +63,6 @@ const HowTo = () => {
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default HowTo;
