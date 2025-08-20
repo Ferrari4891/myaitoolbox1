@@ -6,9 +6,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import JoinNowDialog from "@/components/JoinNowDialog";
+import SignInDialog from "@/components/SignInDialog";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user } = useAuth(); // Keep for admin functionality
   const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth(); // New simple auth
@@ -74,7 +78,6 @@ const Navigation = () => {
           { label: "Schedule Event", path: "/schedule-event" },
         ]
       : [
-          { label: "Join Now", path: "/join-now", isButton: true },
           { label: "How To", path: "/how-to" },
           { label: "Approved Venues", path: "/approved-venues" },
         ]
@@ -115,35 +118,44 @@ const Navigation = () => {
           }`}
         >
           <div className="px-4 py-6 space-y-2">
-            {menuItems.map((item) => {
-              const commonClasses = `block w-full text-left ${
-                item.isButton
-                  ? "bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90"
-                  : `text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md ${
-                      isActive(item.path) ? "bg-gray-100 font-semibold" : ""
-                    }`
-              } transition-smooth`;
+            {/* Auth buttons for non-members */}
+            {!isMember && !isAuthenticated && (
+              <>
+                <Button
+                  onClick={() => {
+                    setShowJoinDialog(true);
+                    setIsOpen(false);
+                  }}
+                  className="w-full bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90 transition-smooth"
+                >
+                  Join Now
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowSignInDialog(true);
+                    setIsOpen(false);
+                  }}
+                  variant="outline"
+                  className="w-full text-gray-800 border-gray-300 py-3 px-4 rounded-md hover:bg-gray-100 transition-smooth"
+                >
+                  Sign In
+                </Button>
+              </>
+            )}
 
-              return item.path === "/join-now" ? (
-                <a
-                  key={item.path}
-                  href="#/join-now"
-                  onClick={() => setIsOpen(false)}
-                  className={commonClasses}
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={commonClasses}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            {/* Navigation menu items */}
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsOpen(false)}
+                className={`block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth ${
+                  isActive(item.path) ? "bg-gray-100 font-semibold" : ""
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
             
             {(isMember || isAuthenticated) && (
               <>
@@ -188,6 +200,16 @@ const Navigation = () => {
           />
         )}
       </div>
+
+      {/* Dialogs */}
+      <JoinNowDialog 
+        isOpen={showJoinDialog} 
+        onClose={() => setShowJoinDialog(false)} 
+      />
+      <SignInDialog 
+        isOpen={showSignInDialog} 
+        onClose={() => setShowSignInDialog(false)} 
+      />
     </nav>
   );
 };
