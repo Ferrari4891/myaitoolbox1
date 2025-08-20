@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +68,7 @@ interface Member {
 
 const ScheduleEvent = () => {
   const { user, isAuthenticated } = useAuth();
+  const { member, isMember } = useSimpleAuth();
   const { toast } = useToast();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -88,7 +90,7 @@ const ScheduleEvent = () => {
   });
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated && !isMember) return;
 
     // Fetch approved venues and members
     const fetchData = async () => {
@@ -122,10 +124,10 @@ const ScheduleEvent = () => {
     };
 
     fetchData();
-  }, [isAuthenticated, toast]);
+  }, [isAuthenticated, isMember, toast]);
 
   const onSubmit = async (data: EventFormData) => {
-    if (!user) {
+    if (!user && !member) {
       toast({
         title: "Authentication required",
         description: "Please sign in to schedule an event.",
@@ -141,24 +143,43 @@ const ScheduleEvent = () => {
       const proposedDate = new Date(data.eventDate);
       proposedDate.setHours(parseInt(hours), parseInt(minutes));
 
-      // Create group invitation with pending status (no longer auto-sends emails)
-      const { data: invitation, error: invitationError } = await supabase
-        .from("group_invitations")
-        .insert({
-          creator_id: user.id,
-          group_name: `${data.eventType} at ${venues.find(v => v.id === data.venueId)?.business_name}`,
-          venue_id: data.venueId,
-          proposed_date: proposedDate.toISOString(),
-          rsvp_deadline: data.rsvpDeadline.toISOString(),
-          custom_message: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,
-          approval_status: 'pending',
-          invite_type: data.inviteType,
-          selected_member_ids: data.inviteType === 'select' ? JSON.stringify(data.selectedMembers) : null
-        })
-        .select()
-        .single();
+      if (user) {
+        // Supabase authenticated user - use direct database insert
+        const { data: invitation, error: invitationError } = await supabase
+          .from("group_invitations")
+          .insert({
+            creator_id: user.id,
+            group_name: `${data.eventType} at ${venues.find(v => v.id === data.venueId)?.business_name}`,
+            venue_id: data.venueId,
+            proposed_date: proposedDate.toISOString(),
+            rsvp_deadline: data.rsvpDeadline.toISOString(),
+            custom_message: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,
+            approval_status: 'pending',
+            invite_type: data.inviteType,
+            selected_member_ids: data.inviteType === 'select' ? JSON.stringify(data.selectedMembers) : null
+          })
+          .select()
+          .single();
 
-      if (invitationError) throw invitationError;
+        if (invitationError) throw invitationError;
+      } else if (member) {
+        // Simple member - use edge function
+        const { data: invitation, error: invitationError } = await supabase.functions.invoke('schedule-event', {
+          body: {
+            memberEmail: member.email,
+            memberName: data.memberName,
+            eventType: data.eventType,
+            venueId: data.venueId,
+            proposedDate: proposedDate.toISOString(),
+            rsvpDeadline: data.rsvpDeadline.toISOString(),
+            customMessage: data.customMessage || `Join us for ${data.eventType.toLowerCase()} organized by ${data.memberName}!`,
+            inviteType: data.inviteType,
+            selectedMembers: data.inviteType === 'select' ? data.selectedMembers : null
+          }
+        });
+
+        if (invitationError) throw invitationError;
+      }
 
       const inviteText = data.inviteType === 'all' 
         ? 'all members' 
@@ -183,7 +204,7 @@ const ScheduleEvent = () => {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isMember) {
     return (
       <div className="min-h-screen bg-gradient-primary">
         <div className="container mx-auto px-4 py-16">
