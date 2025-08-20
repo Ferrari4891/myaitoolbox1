@@ -39,6 +39,12 @@ const JoinNow = () => {
       // Store in localStorage to grant immediate access
       localStorage.setItem('gg_member', JSON.stringify(memberData));
       
+      // Trigger storage event for other tabs/components
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'gg_member',
+        newValue: JSON.stringify(memberData)
+      }));
+      
       // Also store in profiles table for admin management
       try {
         const response = await fetch(`https://urczlhjnztiaxdsatueu.supabase.co/functions/v1/create-simple-member`, {
@@ -59,8 +65,10 @@ const JoinNow = () => {
       
       toast.success("Welcome! You now have access to all features.");
       
-      // Redirect to home page with full access
-      navigate('/');
+      // Small delay to ensure auth state updates before redirect
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
       
     } catch (error: any) {
       toast.error("Something went wrong. Please try again.");
