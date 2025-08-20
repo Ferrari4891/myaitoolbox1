@@ -554,6 +554,45 @@ export type Database = {
           },
         ]
       }
+      simple_members: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          first_name: string
+          id: string
+          is_active: boolean
+          joined_at: string
+          last_name: string
+          receive_notifications: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          email: string
+          first_name: string
+          id?: string
+          is_active?: boolean
+          joined_at?: string
+          last_name: string
+          receive_notifications?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          joined_at?: string
+          last_name?: string
+          receive_notifications?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       "Test Eat": {
         Row: {
           Address: string
