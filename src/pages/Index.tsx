@@ -14,10 +14,20 @@ const Index = () => {
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">Welcome to Gallopingeezers.com, where we've somehow convinced adults around the world that the best way to spend an evening is arguing about wine pairings while pretending we know the difference between "oaky" and "just tastes like wine." Our quirky little member-based Wine & Dine club is creating chapters across the globe, filled with food lovers who take their food seriously but themselves not so much. Come join our merry band of culinary adventurers – we promise good food, great wine, and absolutely no judgment when you accidentally use the salad fork for your main course.</p>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg transition-smooth shadow-elegant">
               <a href="#/join-now">Become a Geezer</a>
             </Button>
+            
+            <div className="text-sm text-muted-foreground">
+              Already a member?{' '}
+              <Link 
+                to="/member-sign-in" 
+                className="text-primary hover:underline font-medium"
+              >
+                Sign In Here
+              </Link>
+            </div>
           </div>
 
           {/* Content placeholder for future additions */}
