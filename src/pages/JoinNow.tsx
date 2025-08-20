@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 
 const JoinNow = () => {
@@ -12,11 +12,10 @@ const JoinNow = () => {
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
-    confirmPassword: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,55 +26,44 @@ const JoinNow = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Validate password strength
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long.");
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Store member info in localStorage for immediate access
+      const memberData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            display_name: `${formData.firstName} ${formData.lastName}`,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        joinedAt: new Date().toISOString(),
+      };
+
+      // Store in localStorage to grant immediate access
+      localStorage.setItem('gg_member', JSON.stringify(memberData));
+      
+      // Also store in profiles table for admin management
+      try {
+        const response = await fetch(`https://urczlhjnztiaxdsatueu.supabase.co/functions/v1/create-simple-member`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyY3psaGpuenRpYXhkc2F0dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3OTUyMDUsImV4cCI6MjA2NzM3MTIwNX0.0e1FjIIvCCCf3fZK6j7BsFmhuL3HT_Cc39SuQG0Mr28`
           },
-          emailRedirectTo: `${window.location.origin}/#/auth-callback`
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Send welcome email
-        try {
-          await supabase.functions.invoke('send-welcome-email', {
-            body: {
-              userId: data.user.id,
-              email: formData.email,
-              displayName: `${formData.firstName} ${formData.lastName}`
-            }
-          });
-        } catch (emailError) {
-          console.log('Welcome email failed to send, but account was created successfully');
-        }
+          body: JSON.stringify(memberData)
+        });
         
-        toast.success("Account created successfully! You can now sign in with your email and password.");
-        setFormData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
+        if (!response.ok) {
+          console.log('Failed to store member in database, but proceeding with local access');
+        }
+      } catch (dbError) {
+        console.log('Database storage failed, but proceeding with local access');
       }
+      
+      toast.success("Welcome! You now have access to all features.");
+      
+      // Redirect to home page with full access
+      navigate('/');
+      
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -101,9 +89,9 @@ const JoinNow = () => {
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="shadow-elegant">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-foreground">Sign Up</CardTitle>
+              <CardTitle className="text-2xl text-foreground">Join Now</CardTitle>
               <CardDescription>
-                Fill out the form below to become a member
+                Enter your details to get instant access
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -156,44 +144,13 @@ const JoinNow = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-foreground font-medium">
-                    Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="transition-smooth focus:ring-primary"
-                    placeholder="Choose a secure password"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-foreground font-medium">
-                    Confirm Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="transition-smooth focus:ring-primary"
-                    placeholder="Confirm your password"
-                  />
-                </div>
 
                 <Button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 transition-smooth"
                 >
-                  {isSubmitting ? "Creating Account..." : "Create Account"}
+                  {isSubmitting ? "Joining..." : "Join Now - Instant Access"}
                 </Button>
               </form>
             </CardContent>
