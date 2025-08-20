@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Menu, X, LogOut } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuth(); // Keep for admin functionality
+  const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth(); // New simple auth
   const { toast } = useToast();
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -33,24 +34,27 @@ const Navigation = () => {
 
   const handleSignOut = async () => {
     try {
-      // Clean up auth state first
-      cleanupAuthState();
-      
-      // Attempt global sign out
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-        console.log('Global signout failed, continuing with cleanup');
+      if (isMember) {
+        // Sign out simple member
+        simpleMemberSignOut();
+        toast({
+          title: "Signed out successfully",
+          description: "You have been logged out."
+        });
+      } else if (isAuthenticated) {
+        // Sign out admin user
+        cleanupAuthState();
+        try {
+          await supabase.auth.signOut({ scope: 'global' });
+        } catch (err) {
+          console.log('Global signout failed, continuing with cleanup');
+        }
+        toast({
+          title: "Signed out successfully",
+          description: "You have been logged out of your admin account."
+        });
+        window.location.href = '/';
       }
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account."
-      });
-      
-      // Force page reload for a clean state
-      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
@@ -63,7 +67,7 @@ const Navigation = () => {
 
   const menuItems = [
     { label: "Home", path: "/" },
-    ...(isAuthenticated 
+    ...(isMember || isAuthenticated 
       ? [
           { label: "Approved Venues", path: "/approved-venues" },
           { label: "Add Venue", path: "/add-venue" },
@@ -71,7 +75,6 @@ const Navigation = () => {
         ]
       : [
           { label: "Join Now", path: "/join-now", isButton: true },
-          { label: "Sign In", path: "/sign-in" },
           { label: "How To", path: "/how-to" },
           { label: "Approved Venues", path: "/approved-venues" },
         ]
@@ -142,15 +145,17 @@ const Navigation = () => {
               );
             })}
             
-            {isAuthenticated && (
+            {(isMember || isAuthenticated) && (
               <>
-                <Link
-                  to="/admin"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
-                >
-                  Admin Panel
-                </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
