@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, Save, Facebook } from 'lucide-react';
+import { CalendarIcon, Save, Facebook, Copy } from 'lucide-react';
 
 interface EventWithVenue {
   id: string;
@@ -56,6 +56,42 @@ export const EditEventDialog = ({ event, isOpen, onClose, onEventUpdated }: Edit
       });
     }
   }, [event]);
+
+  const handleCopyLink = async () => {
+    if (!event) return;
+    
+    const eventUrl = `${window.location.origin}/#/event-rsvp?token=${event.invite_token || event.id}`;
+    const eventText = `🎉 Join us for "${formData.group_name}"!
+
+📍 Venue: ${event.venue.business_name}
+📅 Date: ${new Date(formData.proposed_date).toLocaleDateString()} at ${new Date(formData.proposed_date).toLocaleTimeString()}
+⏰ RSVP by: ${new Date(formData.rsvp_deadline).toLocaleDateString()}
+
+${formData.custom_message ? `📝 ${formData.custom_message}` : ''}
+
+Click here to RSVP: ${eventUrl}`;
+
+    try {
+      await navigator.clipboard.writeText(eventText);
+      toast({
+        title: "Event details copied!",
+        description: "You can now paste this anywhere - Facebook, WhatsApp, text message, etc.",
+      });
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = eventText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      toast({
+        title: "Event details copied!",
+        description: "You can now paste this anywhere - Facebook, WhatsApp, text message, etc.",
+      });
+    }
+  };
 
   const handleShareToFacebook = () => {
     if (!event) return;
@@ -208,6 +244,15 @@ Click here to RSVP: ${eventUrl}`;
           </div>
 
           <div className="space-y-2 pt-4">
+            <Button 
+              onClick={handleCopyLink} 
+              variant="outline" 
+              className="w-full"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy Event Details
+            </Button>
+            
             <Button 
               onClick={handleShareToFacebook} 
               variant="outline" 
