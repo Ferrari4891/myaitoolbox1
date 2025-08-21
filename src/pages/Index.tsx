@@ -105,6 +105,16 @@ const Index = () => {
                   <VenueCard key={venue.id} venue={venue} />
                 ))}
               </div>
+              
+              {/* See More Venues Link */}
+              <div className="text-center mt-8">
+                <Link 
+                  to="/approved-venues" 
+                  className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  See more venues
+                </Link>
+              </div>
             </div>
           )}
 
