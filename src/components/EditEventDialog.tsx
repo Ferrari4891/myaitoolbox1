@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, Save } from 'lucide-react';
+import { CalendarIcon, Save, Facebook } from 'lucide-react';
 
 interface EventWithVenue {
   id: string;
@@ -17,6 +17,7 @@ interface EventWithVenue {
   custom_message: string | null;
   approval_status: string;
   status: string;
+  invite_token?: string;
   venue: {
     business_name: string;
     address: string;
@@ -55,6 +56,30 @@ export const EditEventDialog = ({ event, isOpen, onClose, onEventUpdated }: Edit
       });
     }
   }, [event]);
+
+  const handleShareToFacebook = () => {
+    if (!event) return;
+    
+    const eventUrl = `${window.location.origin}/#/event-rsvp?token=${event.invite_token || event.id}`;
+    const eventText = `🎉 Join us for "${formData.group_name}"!
+
+📍 Venue: ${event.venue.business_name}
+📅 Date: ${new Date(formData.proposed_date).toLocaleDateString()} at ${new Date(formData.proposed_date).toLocaleTimeString()}
+⏰ RSVP by: ${new Date(formData.rsvp_deadline).toLocaleDateString()}
+
+${formData.custom_message ? `📝 ${formData.custom_message}` : ''}
+
+Click here to RSVP: ${eventUrl}`;
+
+    // Open Facebook share dialog
+    const facebookShareUrl = `https://www.facebook.com/share.php?u=${encodeURIComponent(eventUrl)}&quote=${encodeURIComponent(eventText)}`;
+    window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+    
+    toast({
+      title: "Facebook share opened",
+      description: "You can now post this to your Facebook group!",
+    });
+  };
 
   const handleSave = async () => {
     if (!event) return;
@@ -182,14 +207,25 @@ export const EditEventDialog = ({ event, isOpen, onClose, onEventUpdated }: Edit
             </Label>
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
+          <div className="space-y-2 pt-4">
+            <Button 
+              onClick={handleShareToFacebook} 
+              variant="outline" 
+              className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+            >
+              <Facebook className="h-4 w-4 mr-2" />
+              Share to Facebook Group
             </Button>
-            <Button onClick={handleSave} disabled={isLoading} className="flex-1">
-              <Save className="h-4 w-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </Button>
+            
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={isLoading} className="flex-1">
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
