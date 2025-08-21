@@ -90,7 +90,7 @@ const Index = () => {
               Welcome to <br className="md:hidden" />Gallopinggeezers.online
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Welcome to Gallopinggeezers.com, where adults worldwide gather to argue about wine pairings while pretending we know the difference between "oaky" and "just tastes like wine." Our quirky member-based Wine & Dine club is creating chapters across the globe. Come join our merry band of culinary adventurers – we promise good food, great wine, and absolutely no judgment when you use the salad fork for your main course.
+              Welcome to Gallopinggeezers.com, where adults worldwide gather to argue about wine pairings while pretending we know the difference between "oaky" and "just tastes like wine."
             </p>
           </div>
 
