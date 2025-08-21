@@ -83,7 +83,7 @@ const Index = () => {
         height="h-64 md:h-96" 
       />
 
-      <main className="py-16">
+      <main className="pt-0 md:pt-16 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-xl md:text-5xl font-bold text-primary mb-6">

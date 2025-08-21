@@ -13,14 +13,21 @@ const HeroSection = ({
 }: HeroSectionProps) => {
   return (
     <section className={`relative ${height} overflow-hidden`}>
-      {/* Background Image with 16:9 aspect ratio */}
+      {/* Background Image - responsive focus positions */}
+      {/* Mobile */}
       <div 
-        className="absolute inset-0 bg-cover bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-no-repeat md:hidden"
         style={{ 
           backgroundImage: `url(${backgroundImage})`,
-          backgroundPosition: 'center 25%',
-          aspectRatio: '16/9',
-          objectFit: 'cover'
+          backgroundPosition: 'center 25%'
+        }}
+      />
+      {/* Desktop */}
+      <div 
+        className="absolute inset-0 bg-cover bg-no-repeat hidden md:block"
+        style={{ 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundPosition: 'center 15%'
         }}
       />
       
