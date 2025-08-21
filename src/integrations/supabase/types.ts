@@ -453,6 +453,42 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          author_email: string
+          author_id: string | null
+          author_name: string
+          created_at: string
+          id: string
+          is_approved: boolean
+          message_text: string
+          message_type: string
+          updated_at: string
+        }
+        Insert: {
+          author_email: string
+          author_id?: string | null
+          author_name: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_text: string
+          message_type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string
+          author_id?: string | null
+          author_name?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_text?: string
+          message_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_group: string | null

@@ -76,10 +76,12 @@ const Navigation = () => {
           { label: "Approved Venues", path: "/approved-venues" },
           { label: "Add Venue", path: "/add-venue" },
           { label: "Schedule Event", path: "/schedule-event" },
+          { label: "Message Board", path: "/message-board" },
         ]
       : [
           { label: "How To", path: "/how-to" },
           { label: "Approved Venues", path: "/approved-venues" },
+          { label: "Message Board", path: "/message-board" },
         ]
     )
   ];

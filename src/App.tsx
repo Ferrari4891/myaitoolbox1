@@ -16,6 +16,7 @@ import EditVenue from "./pages/EditVenue";
 import SimpleMemberSignIn from "./pages/SimpleMemberSignIn";
 
 import ScheduleEvent from "./pages/ScheduleEvent";
+import MessageBoard from "./pages/MessageBoard";
 import EventRSVP from "./pages/EventRSVP";
 import Admin from "./pages/Admin";
 import AdminSignIn from "./pages/AdminSignIn";
@@ -48,6 +49,7 @@ const App = () => {
             <Route path="/approved-venues" element={<ApprovedVenues />} />
             <Route path="/add-venue" element={<AddVenue />} />
             <Route path="/schedule-event" element={<ScheduleEvent />} />
+            <Route path="/message-board" element={<MessageBoard />} />
             
             <Route path="/event-rsvp" element={<EventRSVP />} />
             <Route path="/admin" element={<Admin />} />
