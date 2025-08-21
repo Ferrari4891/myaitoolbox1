@@ -13,10 +13,14 @@ const HeroSection = ({
 }: HeroSectionProps) => {
   return (
     <section className={`relative ${height} overflow-hidden`}>
-      {/* Background Image */}
+      {/* Background Image with 16:9 aspect ratio */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        style={{ 
+          backgroundImage: `url(${backgroundImage})`,
+          aspectRatio: '16/9',
+          objectFit: 'cover'
+        }}
       />
       
       {/* Overlay */}
