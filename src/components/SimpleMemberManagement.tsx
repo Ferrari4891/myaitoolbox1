@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Mail, MailX, AlertTriangle } from "lucide-react";
+import { Trash2, Mail, MailX, AlertTriangle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -75,6 +75,24 @@ const SimpleMemberManagement = () => {
     }
   };
 
+  const blockMember = async (email: string, reason?: string) => {
+    try {
+      const { error } = await supabase
+        .from('blocked_users')
+        .insert({
+          email,
+          reason: reason || 'Blocked by admin'
+        });
+
+      if (error) throw error;
+
+      toast.success(`${email} has been blocked`);
+    } catch (error) {
+      console.error('Error blocking member:', error);
+      toast.error('Failed to block member');
+    }
+  };
+
   const removeMember = async (memberId: string, memberEmail: string) => {
     try {
       const { error } = await supabase
@@ -85,7 +103,7 @@ const SimpleMemberManagement = () => {
       if (error) throw error;
 
       setMembers(prev => prev.filter(member => member.id !== memberId));
-      toast.success(`Member ${memberEmail} removed successfully`);
+      toast.success(`Member ${memberEmail} permanently deleted`);
     } catch (error) {
       console.error('Error removing member:', error);
       toast.error('Failed to remove member');
@@ -161,21 +179,31 @@ const SimpleMemberManagement = () => {
                     )}
                   </Button>
                   
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => blockMember(member.email, 'Blocked by admin')}
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  >
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Block
+                  </Button>
+                  
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4 mr-1" />
-                        Remove
+                        Delete
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2">
                           <AlertTriangle className="w-5 h-5 text-destructive" />
-                          Remove Member
+                          Permanently Delete Member
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to permanently remove <strong>{member.display_name}</strong> ({member.email}) from the system? This action cannot be undone.
+                          Are you sure you want to permanently delete <strong>{member.display_name}</strong> ({member.email}) from the system? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -184,7 +212,7 @@ const SimpleMemberManagement = () => {
                           onClick={() => removeMember(member.id, member.email)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          Remove Member
+                          Delete Permanently
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

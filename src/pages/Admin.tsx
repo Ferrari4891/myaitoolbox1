@@ -399,7 +399,7 @@ const Admin = () => {
 
   const removeMember = async (memberId: string, memberName: string) => {
     const confirmRemoval = window.confirm(
-      `Are you sure you want to remove ${memberName || 'this member'}? This action cannot be undone.`
+      `Are you sure you want to permanently remove ${memberName || 'this member'}? This will delete ALL their data and cannot be undone.`
     );
     
     if (!confirmRemoval) return;
@@ -414,64 +414,45 @@ const Admin = () => {
         .eq('id', memberId)
         .single();
       
-      console.log('Deleting member:', memberToDelete);
+      console.log('Permanently removing member:', memberToDelete);
       
-      if (memberToDelete?.email) {
-        // First delete all profiles with the same email
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('email', memberToDelete.email);
-        
-        if (profileError) {
-          console.error('Error deleting profiles:', profileError);
-          throw profileError;
+      if (!memberToDelete?.user_id || !memberToDelete?.email) {
+        throw new Error('Cannot find member data for deletion');
+      }
+      
+      // Use the purge-member edge function for complete deletion
+      const { data, error } = await supabase.functions.invoke('purge-member', {
+        body: { 
+          userId: memberToDelete.user_id, 
+          email: memberToDelete.email 
         }
-        
-        console.log('Deleted all profiles with email:', memberToDelete.email);
-        
-        // Also try to delete the user from auth if we have user_id
-        if (memberToDelete.user_id) {
-          try {
-            const { error: authError } = await supabase.auth.admin.deleteUser(memberToDelete.user_id);
-            if (authError) {
-              console.warn('Could not delete auth user:', authError);
-            } else {
-              console.log('Also deleted auth user:', memberToDelete.user_id);
-            }
-          } catch (authErr) {
-            console.warn('Auth deletion not available:', authErr);
-          }
-        }
-      } else {
-        // Fallback to just deleting by ID
-        const { error } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', memberId);
-        
-        if (error) throw error;
+      });
+
+      if (error) {
+        console.error('Error calling purge-member function:', error);
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to purge member data');
       }
       
       // Update local state - remove all members with same email
       setRecentMembers(prev => {
-        const memberEmail = memberToDelete?.email;
-        const updated = memberEmail 
-          ? prev.filter(member => member.email !== memberEmail)
-          : prev.filter(member => member.id !== memberId);
+        const updated = prev.filter(member => member.email !== memberToDelete.email);
         console.log('Updated member list after deletion. Remaining members:', updated.length);
         return updated;
       });
 
       toast({
-        title: "Member Removed",
-        description: `${memberName || 'Member'} has been removed successfully.`,
+        title: "Member Permanently Removed",
+        description: `${memberName || 'Member'} and all their data has been permanently deleted.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing member:', error);
       toast({
         title: "Error",
-        description: "Failed to remove member. Please try again.",
+        description: error.message || "Failed to remove member. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -479,6 +460,73 @@ const Admin = () => {
         const newSet = new Set(prev);
         newSet.delete(memberId);
         return newSet;
+      });
+    }
+  };
+
+  const blockMember = async (email: string, reason?: string) => {
+    try {
+      console.log('Blocking member:', email);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('blocked_users')
+        .insert({
+          email,
+          reason: reason || 'Blocked by admin',
+          blocked_by: user?.id
+        });
+
+      if (error) {
+        console.error('Error blocking member:', error);
+        throw error;
+      }
+
+      // Refresh data
+      await Promise.all([fetchRecentMembers(), fetchBlockedUsers()]);
+      
+      toast({
+        title: "Success",
+        description: `${email} has been blocked.`,
+      });
+    } catch (error: any) {
+      console.error('Error blocking member:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to block member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const unblockMember = async (email: string) => {
+    try {
+      console.log('Unblocking member:', email);
+      
+      const { error } = await supabase
+        .from('blocked_users')
+        .delete()
+        .eq('email', email);
+
+      if (error) {
+        console.error('Error unblocking member:', error);
+        throw error;
+      }
+
+      // Refresh data
+      await Promise.all([fetchRecentMembers(), fetchBlockedUsers()]);
+      
+      toast({
+        title: "Success",
+        description: `${email} has been unblocked.`,
+      });
+    } catch (error: any) {
+      console.error('Error unblocking member:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to unblock member",
+        variant: "destructive",
       });
     }
   };
@@ -1089,21 +1137,33 @@ const Admin = () => {
                           </div>
                         </td>
                         <td className="py-3 px-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeMember(
-                              member.id, 
-                              member.first_name && member.last_name 
-                                ? `${member.first_name} ${member.last_name}`
-                                : member.display_name || 'Member'
-                            )}
-                            disabled={removingMembers.has(member.id) || member.is_admin}
-                            className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            {removingMembers.has(member.id) ? 'Removing...' : 'Remove'}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => blockMember(member.email || '', 'Blocked by admin')}
+                              disabled={!member.email || member.is_admin}
+                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            >
+                              <XCircle className="h-4 w-4" />
+                              Block
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeMember(
+                                member.id, 
+                                member.first_name && member.last_name 
+                                  ? `${member.first_name} ${member.last_name}`
+                                  : member.display_name || 'Member'
+                              )}
+                              disabled={removingMembers.has(member.id) || member.is_admin}
+                              className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {removingMembers.has(member.id) ? 'Removing...' : 'Delete'}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1154,7 +1214,7 @@ const Admin = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => unblockUser(user.id, user.email)}
+                            onClick={() => unblockMember(user.email)}
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
                           >
                             <Check className="h-4 w-4 mr-1" />
