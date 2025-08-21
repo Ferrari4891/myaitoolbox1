@@ -15,9 +15,10 @@ const HeroSection = ({
     <section className={`relative ${height} overflow-hidden`}>
       {/* Background Image with 16:9 aspect ratio */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-no-repeat"
         style={{ 
           backgroundImage: `url(${backgroundImage})`,
+          backgroundPosition: 'center 30%',
           aspectRatio: '16/9',
           objectFit: 'cover'
         }}
