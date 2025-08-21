@@ -18,7 +18,7 @@ const HeroSection = ({
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{ 
           backgroundImage: `url(${backgroundImage})`,
-          backgroundPosition: 'center 15%',
+          backgroundPosition: 'center 30%',
           aspectRatio: '16/9',
           objectFit: 'cover'
         }}
