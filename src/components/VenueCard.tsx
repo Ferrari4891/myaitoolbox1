@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageCarousel } from "@/components/ui/image-carousel";
+import { Link } from "react-router-dom";
 
 interface VenueCardProps {
   venue: {
@@ -11,9 +12,10 @@ interface VenueCardProps {
     image_2_url?: string;
     image_3_url?: string;
   };
+  showSeeMoreLink?: boolean;
 }
 
-const VenueCard = ({ venue }: VenueCardProps) => {
+const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
   const images = [venue.image_1_url, venue.image_2_url, venue.image_3_url]
     .filter(Boolean) as string[];
 
@@ -43,6 +45,17 @@ const VenueCard = ({ venue }: VenueCardProps) => {
           <p className="text-sm text-muted-foreground">
             📍 {venue.address}
           </p>
+        )}
+        
+        {showSeeMoreLink && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <Link 
+              to="/approved-venues" 
+              className="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors font-medium w-full text-center"
+            >
+              See more venues
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>

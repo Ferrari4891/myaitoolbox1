@@ -102,18 +102,8 @@ const Index = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {displayedVenues.map((venue) => (
-                  <VenueCard key={venue.id} venue={venue} />
+                  <VenueCard key={venue.id} venue={venue} showSeeMoreLink={true} />
                 ))}
-              </div>
-              
-              {/* See More Venues Link */}
-              <div className="text-center mt-8">
-                <Link 
-                  to="/approved-venues" 
-                  className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  See more venues
-                </Link>
               </div>
             </div>
           )}
