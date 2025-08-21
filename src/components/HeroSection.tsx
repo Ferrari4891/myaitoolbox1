@@ -18,7 +18,7 @@ const HeroSection = ({
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{ 
           backgroundImage: `url(${backgroundImage})`,
-          backgroundPosition: 'center 30%',
+          backgroundPosition: 'center 20%',
           aspectRatio: '16/9',
           objectFit: 'cover'
         }}
@@ -41,11 +41,8 @@ const HeroSection = ({
         </div>
       </div>
       
-      {/* Bottom Shadow - Dark backdrop for white line */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/80 via-black/60 to-transparent pointer-events-none z-20" />
-      
-      {/* Bottom White Line */}
-      <div className="absolute bottom-0 left-0 right-0 h-2 bg-white z-30" />
+      {/* Bottom White Line with subtle shadow */}
+      <div className="absolute bottom-0 left-0 right-0 h-2 bg-white shadow-md z-30" />
     </section>
   );
 };
