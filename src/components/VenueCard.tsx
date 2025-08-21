@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageCarousel } from "@/components/ui/image-carousel";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin, ExternalLink, Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { GrabLink } from "@/components/GrabLink";
 
 interface VenueCardProps {
   venue: {
@@ -10,6 +11,8 @@ interface VenueCardProps {
     business_name: string;
     description?: string;
     address?: string;
+    google_maps_link?: string;
+    facebook_link?: string;
     image_1_url?: string;
     image_2_url?: string;
     image_3_url?: string;
@@ -40,9 +43,13 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
     return validImages;
   };
 
-  const openGoogleMaps = (address: string) => {
-    const encodedAddress = encodeURIComponent(address);
-    window.open(`https://maps.google.com?q=${encodedAddress}`, '_blank');
+  const openGoogleMaps = (address: string, mapsLink?: string) => {
+    if (mapsLink) {
+      window.open(mapsLink, '_blank');
+    } else {
+      const encodedAddress = encodeURIComponent(address);
+      window.open(`https://maps.google.com?q=${encodedAddress}`, '_blank');
+    }
   };
 
   return (
@@ -92,10 +99,34 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
                   variant="link"
                   size="sm"
                   className="h-auto p-0 text-primary hover:text-primary/80"
-                  onClick={() => openGoogleMaps(venue.address!)}
+                  onClick={() => openGoogleMaps(venue.address!, venue.google_maps_link)}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
                   View on Google Maps
+                </Button>
+              </div>
+            </>
+          )}
+          
+          {venue.address && (
+            <div className="flex items-center gap-2">
+              <GrabLink venue={{...venue, address: venue.address}} />
+            </div>
+          )}
+          
+          {venue.facebook_link && (
+            <>
+              <div className="h-px bg-border"></div>
+              <div className="flex items-center gap-2">
+                <Facebook className="h-4 w-4 text-muted-foreground" />
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-primary hover:text-primary/80"
+                  onClick={() => window.open(venue.facebook_link, '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Facebook Page
                 </Button>
               </div>
             </>

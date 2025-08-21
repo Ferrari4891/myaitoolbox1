@@ -9,6 +9,8 @@ interface Venue {
   business_name: string;
   description?: string;
   address?: string;
+  google_maps_link?: string;
+  facebook_link?: string;
   image_1_url?: string;
   image_2_url?: string;
   image_3_url?: string;
@@ -26,7 +28,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from('venues')
-        .select('id, business_name, description, address, image_1_url, image_2_url, image_3_url')
+        .select('id, business_name, description, address, google_maps_link, facebook_link, image_1_url, image_2_url, image_3_url')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
