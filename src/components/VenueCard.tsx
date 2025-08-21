@@ -51,7 +51,7 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
           <div className="mt-4 pt-4 border-t border-border">
             <Link 
               to="/approved-venues" 
-              className="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors font-medium w-full text-center"
+              className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm hover:bg-primary/90 transition-colors font-medium w-full text-center"
             >
               See more venues
             </Link>
