@@ -7,9 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle, Send, Reply, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageCircle, Send, Reply, ChevronDown, ChevronUp, Edit, Trash2 } from 'lucide-react';
 
 interface MessageReply {
   id: string;
@@ -42,13 +43,44 @@ export default function MessageBoard() {
   const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [editingMessage, setEditingMessage] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editType, setEditType] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const { user } = useAuth();
   const { member } = useSimpleAuth();
 
   useEffect(() => {
     fetchMessages();
-  }, []);
+    checkAdminStatus();
+  }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        return;
+      }
+
+      setIsAdmin(data?.is_admin || false);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -224,6 +256,81 @@ export default function MessageBoard() {
     });
   };
 
+  const handleEditMessage = async (messageId: string) => {
+    if (!editText.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a message.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          message_text: editText.trim(),
+          message_type: editType,
+        })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Message updated successfully!",
+      });
+
+      setEditingMessage(null);
+      setEditText('');
+      setEditType('');
+      fetchMessages();
+    } catch (error) {
+      console.error('Error updating message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update message. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Message deleted successfully!",
+      });
+
+      fetchMessages();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const startEditingMessage = (message: Message) => {
+    setEditingMessage(message.id);
+    setEditText(message.message_text);
+    setEditType(message.message_type);
+  };
+
   const getMessageTypeLabel = (type: string) => {
     switch (type) {
       case 'suggestion': return 'Suggestion';
@@ -351,13 +458,84 @@ export default function MessageBoard() {
                       {getMessageTypeLabel(message.message_type)}
                     </span>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditingMessage(message)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteMessage(message.id)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    </div>
                   </div>
                 </div>
-                <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
-                  {message.message_text}
-                </p>
+
+                {editingMessage === message.id ? (
+                  <div className="space-y-4 mb-4">
+                    <Select value={editType} onValueChange={setEditType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select message type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="suggestion">Suggestion</SelectItem>
+                        <SelectItem value="feedback">Feedback</SelectItem>
+                        <SelectItem value="question">Question</SelectItem>
+                        <SelectItem value="general">General Discussion</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      placeholder="Edit your message..."
+                      className="min-h-[100px] resize-none"
+                      maxLength={1000}
+                    />
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-muted-foreground">
+                        {editText.length}/1000
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingMessage(null);
+                            setEditText('');
+                            setEditType('');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditMessage(message.id)}
+                          disabled={!editText.trim()}
+                        >
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
+                    {message.message_text}
+                  </p>
+                )}
 
                 {/* Reply actions */}
                 <div className="flex items-center gap-4 pt-2 border-t">
