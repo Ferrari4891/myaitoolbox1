@@ -9,16 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle, Send, Reply, ChevronDown, ChevronRight } from 'lucide-react';
+import { MessageCircle, Send, Reply, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface MessageReply {
   id: string;
   message_id: string;
-  parent_reply_id?: string;
+  parent_reply_id: string | null;
   author_name: string;
   author_email: string;
   reply_text: string;
   created_at: string;
+  author_id: string | null;
 }
 
 interface Message {
@@ -38,7 +39,7 @@ export default function MessageBoard() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [newReply, setNewReply] = useState('');
+  const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   
@@ -93,72 +94,6 @@ export default function MessageBoard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReplySubmit = async (messageId: string) => {
-    if (!newReply.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a reply.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user && !member) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to reply.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSubmittingReply(true);
-
-    try {
-      const replyData = {
-        message_id: messageId,
-        reply_text: newReply.trim(),
-        author_name: user?.user_metadata?.display_name || member?.displayName || 'Anonymous',
-        author_email: user?.email || member?.email || '',
-        author_id: user?.id || null,
-      };
-
-      const { error } = await supabase
-        .from('message_replies')
-        .insert([replyData]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Your reply has been posted!",
-      });
-
-      setNewReply('');
-      setReplyingTo(null);
-      fetchMessages(); // Refresh messages with replies
-    } catch (error) {
-      console.error('Error posting reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post reply. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmittingReply(false);
-    }
-  };
-
-  const toggleExpanded = (messageId: string) => {
-    const newExpanded = new Set(expandedMessages);
-    if (newExpanded.has(messageId)) {
-      newExpanded.delete(messageId);
-    } else {
-      newExpanded.add(messageId);
-    }
-    setExpandedMessages(newExpanded);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,6 +152,76 @@ export default function MessageBoard() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleReply = async (messageId: string) => {
+    if (!replyText.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a reply.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user && !member) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to reply.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingReply(true);
+
+    try {
+      const replyData = {
+        message_id: messageId,
+        reply_text: replyText.trim(),
+        author_name: user?.user_metadata?.display_name || member?.displayName || 'Anonymous',
+        author_email: user?.email || member?.email || '',
+        author_id: user?.id || null,
+      };
+
+      const { error } = await supabase
+        .from('message_replies')
+        .insert([replyData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Your reply has been posted!",
+      });
+
+      setReplyText('');
+      setReplyingTo(null);
+      // Expand the message to show the new reply
+      setExpandedMessages(prev => new Set([...prev, messageId]));
+      fetchMessages(); // Refresh messages
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const toggleExpanded = (messageId: string) => {
+    setExpandedMessages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
   };
 
   const getMessageTypeLabel = (type: string) => {
@@ -354,8 +359,8 @@ export default function MessageBoard() {
                   {message.message_text}
                 </p>
 
-                {/* Reply actions and count */}
-                <div className="flex items-center gap-4 pt-2 border-t border-border">
+                {/* Reply actions */}
+                <div className="flex items-center gap-4 pt-2 border-t">
                   {(user || member) && (
                     <Button
                       variant="ghost"
@@ -363,7 +368,7 @@ export default function MessageBoard() {
                       onClick={() => setReplyingTo(replyingTo === message.id ? null : message.id)}
                       className="text-muted-foreground hover:text-foreground"
                     >
-                      <Reply className="h-4 w-4 mr-1" />
+                      <Reply className="h-4 w-4 mr-2" />
                       Reply
                     </Button>
                   )}
@@ -376,29 +381,34 @@ export default function MessageBoard() {
                       className="text-muted-foreground hover:text-foreground"
                     >
                       {expandedMessages.has(message.id) ? (
-                        <ChevronDown className="h-4 w-4 mr-1" />
+                        <>
+                          <ChevronUp className="h-4 w-4 mr-2" />
+                          Hide {message.replies.length} {message.replies.length === 1 ? 'reply' : 'replies'}
+                        </>
                       ) : (
-                        <ChevronRight className="h-4 w-4 mr-1" />
+                        <>
+                          <ChevronDown className="h-4 w-4 mr-2" />
+                          Show {message.replies.length} {message.replies.length === 1 ? 'reply' : 'replies'}
+                        </>
                       )}
-                      {message.replies.length} {message.replies.length === 1 ? 'Reply' : 'Replies'}
                     </Button>
                   )}
                 </div>
 
                 {/* Reply form */}
                 {replyingTo === message.id && (
-                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                  <div className="mt-4 pl-4 border-l-2 border-muted">
                     <div className="space-y-3">
                       <Textarea
-                        value={newReply}
-                        onChange={(e) => setNewReply(e.target.value)}
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Write your reply..."
                         className="min-h-[80px] resize-none"
                         maxLength={500}
                       />
                       <div className="flex justify-between items-center">
                         <div className="text-sm text-muted-foreground">
-                          {newReply.length}/500
+                          {replyText.length}/500
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -406,15 +416,15 @@ export default function MessageBoard() {
                             size="sm"
                             onClick={() => {
                               setReplyingTo(null);
-                              setNewReply('');
+                              setReplyText('');
                             }}
                           >
                             Cancel
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleReplySubmit(message.id)}
-                            disabled={submittingReply || !newReply.trim()}
+                            onClick={() => handleReply(message.id)}
+                            disabled={submittingReply || !replyText.trim()}
                           >
                             {submittingReply ? "Posting..." : "Post Reply"}
                           </Button>
@@ -424,11 +434,11 @@ export default function MessageBoard() {
                   </div>
                 )}
 
-                {/* Replies list */}
+                {/* Replies */}
                 {message.replies && message.replies.length > 0 && expandedMessages.has(message.id) && (
                   <div className="mt-4 space-y-3">
                     {message.replies.map((reply) => (
-                      <div key={reply.id} className="ml-6 p-3 bg-muted/30 rounded-lg border-l-2 border-border">
+                      <div key={reply.id} className="pl-4 border-l-2 border-muted">
                         <div className="flex justify-between items-start mb-2">
                           <div className="font-medium text-sm">{reply.author_name}</div>
                           <div className="text-xs text-muted-foreground">
