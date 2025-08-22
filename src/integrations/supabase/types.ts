@@ -453,6 +453,45 @@ export type Database = {
           },
         ]
       }
+      message_replies: {
+        Row: {
+          author_email: string
+          author_id: string | null
+          author_name: string
+          created_at: string
+          id: string
+          is_approved: boolean
+          message_id: string
+          parent_reply_id: string | null
+          reply_text: string
+          updated_at: string
+        }
+        Insert: {
+          author_email: string
+          author_id?: string | null
+          author_name: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_id: string
+          parent_reply_id?: string | null
+          reply_text: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string
+          author_id?: string | null
+          author_name?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_id?: string
+          parent_reply_id?: string | null
+          reply_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           author_email: string

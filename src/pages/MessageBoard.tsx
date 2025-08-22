@@ -9,7 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Reply, ChevronDown, ChevronRight } from 'lucide-react';
+
+interface MessageReply {
+  id: string;
+  message_id: string;
+  parent_reply_id?: string;
+  author_name: string;
+  author_email: string;
+  reply_text: string;
+  created_at: string;
+}
 
 interface Message {
   id: string;
@@ -18,6 +28,7 @@ interface Message {
   message_text: string;
   message_type: string;
   created_at: string;
+  replies?: MessageReply[];
 }
 
 export default function MessageBoard() {
@@ -26,6 +37,10 @@ export default function MessageBoard() {
   const [messageType, setMessageType] = useState('suggestion');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [newReply, setNewReply] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   
   const { user } = useAuth();
   const { member } = useSimpleAuth();
@@ -36,13 +51,38 @@ export default function MessageBoard() {
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch messages
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setMessages(data || []);
+      if (messagesError) throw messagesError;
+
+      // Fetch replies for all messages
+      const { data: repliesData, error: repliesError } = await supabase
+        .from('message_replies')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (repliesError) throw repliesError;
+
+      // Group replies by message_id
+      const repliesByMessage = (repliesData || []).reduce((acc, reply) => {
+        if (!acc[reply.message_id]) {
+          acc[reply.message_id] = [];
+        }
+        acc[reply.message_id].push(reply);
+        return acc;
+      }, {} as Record<string, MessageReply[]>);
+
+      // Combine messages with their replies
+      const messagesWithReplies = (messagesData || []).map(message => ({
+        ...message,
+        replies: repliesByMessage[message.id] || []
+      }));
+
+      setMessages(messagesWithReplies);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -53,6 +93,72 @@ export default function MessageBoard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReplySubmit = async (messageId: string) => {
+    if (!newReply.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a reply.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user && !member) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to reply.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingReply(true);
+
+    try {
+      const replyData = {
+        message_id: messageId,
+        reply_text: newReply.trim(),
+        author_name: user?.user_metadata?.display_name || member?.displayName || 'Anonymous',
+        author_email: user?.email || member?.email || '',
+        author_id: user?.id || null,
+      };
+
+      const { error } = await supabase
+        .from('message_replies')
+        .insert([replyData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Your reply has been posted!",
+      });
+
+      setNewReply('');
+      setReplyingTo(null);
+      fetchMessages(); // Refresh messages with replies
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const toggleExpanded = (messageId: string) => {
+    const newExpanded = new Set(expandedMessages);
+    if (newExpanded.has(messageId)) {
+      newExpanded.delete(messageId);
+    } else {
+      newExpanded.add(messageId);
+    }
+    setExpandedMessages(newExpanded);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,9 +350,98 @@ export default function MessageBoard() {
                     {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                   </div>
                 </div>
-                <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
                   {message.message_text}
                 </p>
+
+                {/* Reply actions and count */}
+                <div className="flex items-center gap-4 pt-2 border-t border-border">
+                  {(user || member) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReplyingTo(replyingTo === message.id ? null : message.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Reply className="h-4 w-4 mr-1" />
+                      Reply
+                    </Button>
+                  )}
+                  
+                  {message.replies && message.replies.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleExpanded(message.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      {expandedMessages.has(message.id) ? (
+                        <ChevronDown className="h-4 w-4 mr-1" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 mr-1" />
+                      )}
+                      {message.replies.length} {message.replies.length === 1 ? 'Reply' : 'Replies'}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Reply form */}
+                {replyingTo === message.id && (
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="space-y-3">
+                      <Textarea
+                        value={newReply}
+                        onChange={(e) => setNewReply(e.target.value)}
+                        placeholder="Write your reply..."
+                        className="min-h-[80px] resize-none"
+                        maxLength={500}
+                      />
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          {newReply.length}/500
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setReplyingTo(null);
+                              setNewReply('');
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleReplySubmit(message.id)}
+                            disabled={submittingReply || !newReply.trim()}
+                          >
+                            {submittingReply ? "Posting..." : "Post Reply"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Replies list */}
+                {message.replies && message.replies.length > 0 && expandedMessages.has(message.id) && (
+                  <div className="mt-4 space-y-3">
+                    {message.replies.map((reply) => (
+                      <div key={reply.id} className="ml-6 p-3 bg-muted/30 rounded-lg border-l-2 border-border">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-medium text-sm">{reply.author_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
+                        <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                          {reply.reply_text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
