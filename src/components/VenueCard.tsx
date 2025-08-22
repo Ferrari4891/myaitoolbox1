@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageCarousel } from "@/components/ui/image-carousel";
-import { MapPin, ExternalLink, Facebook } from "lucide-react";
+import { MapPin, ExternalLink, Facebook, Share2, Copy, Mail, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { GrabLink } from "@/components/GrabLink";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
 
 interface VenueCardProps {
   venue: {
@@ -21,6 +23,8 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
+  const { toast } = useToast();
+
   const getVenueImages = (venue: any) => {
     const images = [venue.image_1_url, venue.image_2_url, venue.image_3_url]
       .filter(Boolean) as string[];
@@ -52,12 +56,136 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
     }
   };
 
+  const handleShare = async (platform: string) => {
+    const shareData = {
+      title: venue.business_name,
+      text: `Check out ${venue.business_name}${venue.description ? ` - ${venue.description}` : ''}`,
+      url: window.location.href
+    };
+
+    const shareUrl = window.location.href;
+    const shareText = encodeURIComponent(shareData.text);
+    const shareTitle = encodeURIComponent(shareData.title);
+
+    switch (platform) {
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast({
+            title: "Link copied!",
+            description: "Venue link copied to clipboard.",
+          });
+        } catch (err) {
+          toast({
+            title: "Copy failed",
+            description: "Unable to copy link to clipboard.",
+            variant: "destructive",
+          });
+        }
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${shareText}%20${encodeURIComponent(shareUrl)}`, '_blank');
+        break;
+      case 'email':
+        window.open(`mailto:?subject=${shareTitle}&body=${shareText}%0A%0A${encodeURIComponent(shareUrl)}`, '_blank');
+        break;
+      case 'native':
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+          } catch (err) {
+            console.log('Share canceled or failed');
+          }
+        }
+        break;
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-bold text-card-foreground">
-          {venue.business_name}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-bold text-card-foreground">
+            {venue.business_name}
+          </CardTitle>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Share2 className="h-4 w-4" />
+                <span className="sr-only">Share venue</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Share venue</h4>
+                <div className="space-y-1">
+                  {navigator.share && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start h-8"
+                      onClick={() => handleShare('native')}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8"
+                    onClick={() => handleShare('copy')}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy link
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8"
+                    onClick={() => handleShare('facebook')}
+                  >
+                    <Facebook className="h-4 w-4 mr-2" />
+                    Facebook
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8"
+                    onClick={() => handleShare('twitter')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Twitter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8"
+                    onClick={() => handleShare('whatsapp')}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8"
+                    onClick={() => handleShare('email')}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
