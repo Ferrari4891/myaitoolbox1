@@ -94,6 +94,7 @@ const Admin = () => {
   const [resendingEvent, setResendingEvent] = useState<EventWithVenue | null>(null);
   const [isResendDialogOpen, setIsResendDialogOpen] = useState(false);
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const [memberTypeToAdd, setMemberTypeToAdd] = useState<'admin' | 'simple'>('admin');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -1075,17 +1076,33 @@ const Admin = () => {
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Admin Directory
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Admin Directory
               </CardTitle>
-              <Button
-                onClick={() => setIsAddMemberDialogOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                Add Member
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setMemberTypeToAdd('admin');
+                    setIsAddMemberDialogOpen(true);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Add Administrator
+                </Button>
+                <Button
+                  onClick={() => {
+                    setMemberTypeToAdd('simple');
+                    setIsAddMemberDialogOpen(true);
+                  }}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Add Simple Member
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -1404,6 +1421,7 @@ const Admin = () => {
         <AddMemberDialog 
           open={isAddMemberDialogOpen}
           onClose={() => setIsAddMemberDialogOpen(false)}
+          memberType={memberTypeToAdd}
           onMemberAdded={fetchRecentMembers}
         />
       </main>

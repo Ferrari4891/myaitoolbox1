@@ -11,9 +11,10 @@ interface AddMemberDialogProps {
   open: boolean;
   onClose: () => void;
   onMemberAdded: () => void;
+  memberType: 'admin' | 'simple';
 }
 
-export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialogProps) => {
+export const AddMemberDialog = ({ open, onClose, onMemberAdded, memberType }: AddMemberDialogProps) => {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -36,21 +37,24 @@ export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialo
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-member', {
-        body: {
-          email,
-          displayName,
-          firstName,
-          lastName,
-        },
-      });
+      const functionName = memberType === 'admin' ? 'create-member' : 'create-simple-member';
+      const body = memberType === 'admin' 
+        ? { email, displayName, firstName, lastName }
+        : { email, displayName, firstName, lastName, joinedAt: new Date().toISOString() };
+      
+      const { data, error } = await supabase.functions.invoke(functionName, { body });
 
       if (error) throw error;
 
       if (data.success) {
+        const memberTypeText = memberType === 'admin' ? 'Administrator' : 'Simple Member';
+        const description = memberType === 'admin' 
+          ? `${displayName} has been added as an administrator and will receive login credentials via email.`
+          : `${displayName} has been added as a simple member.`;
+        
         toast({
-          title: "Member Created Successfully",
-          description: `${displayName} has been added and will receive login credentials via email.`,
+          title: `${memberTypeText} Created Successfully`,
+          description,
         });
         
         // Reset form
@@ -105,7 +109,7 @@ export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Add New Member
+            Add New {memberType === 'admin' ? 'Administrator' : 'Simple Member'}
           </DialogTitle>
         </DialogHeader>
         
@@ -167,8 +171,9 @@ export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialo
 
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> The new member will receive an email with their login credentials. 
-              The temporary password is "geezer" and they'll be required to change it on first login.
+              <strong>Note:</strong> {memberType === 'admin' 
+                ? 'The new administrator will receive an email with their login credentials. The temporary password is "geezer" and they\'ll be required to change it on first login.'
+                : 'The simple member will be added to the member directory with basic access privileges.'}
             </p>
           </div>
 
@@ -182,7 +187,7 @@ export const AddMemberDialog = ({ open, onClose, onMemberAdded }: AddMemberDialo
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Member"}
+              {loading ? "Creating..." : `Create ${memberType === 'admin' ? 'Administrator' : 'Simple Member'}`}
             </Button>
           </div>
         </form>
