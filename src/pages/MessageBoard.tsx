@@ -337,6 +337,7 @@ export default function MessageBoard() {
       case 'feedback': return 'Feedback';
       case 'question': return 'Question';
       case 'tech_issues': return 'Tech Issues';
+      case 'new_features': return "New feature's";
       case 'general': return 'General';
       default: return 'Message';
     }
@@ -348,6 +349,7 @@ export default function MessageBoard() {
       case 'feedback': return 'bg-green-100 text-green-800';
       case 'question': return 'bg-yellow-100 text-yellow-800';
       case 'tech_issues': return 'bg-red-100 text-red-800';
+      case 'new_features': return 'bg-purple-100 text-purple-800';
       case 'general': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -393,6 +395,7 @@ export default function MessageBoard() {
                     <SelectItem value="feedback">Feedback</SelectItem>
                     <SelectItem value="question">Question</SelectItem>
                     <SelectItem value="tech_issues">Tech Issues</SelectItem>
+                    <SelectItem value="new_features">New feature's</SelectItem>
                     <SelectItem value="general">General Discussion</SelectItem>
                   </SelectContent>
                 </Select>
@@ -499,6 +502,7 @@ export default function MessageBoard() {
                         <SelectItem value="feedback">Feedback</SelectItem>
                         <SelectItem value="question">Question</SelectItem>
                         <SelectItem value="tech_issues">Tech Issues</SelectItem>
+                        <SelectItem value="new_features">New feature's</SelectItem>
                         <SelectItem value="general">General Discussion</SelectItem>
                       </SelectContent>
                     </Select>
