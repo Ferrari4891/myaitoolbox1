@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import JoinNowDialog from "@/components/JoinNowDialog";
 import SignInDialog from "@/components/SignInDialog";
+import { VenueDirectoryMenu } from "@/components/VenueDirectoryMenu";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -159,6 +160,12 @@ const Navigation = () => {
                 {item.label}
               </Link>
             ))}
+
+            {/* Venue Directory */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-sm font-semibold text-gray-600 px-4 mb-2">Venue Directory</h3>
+              <VenueDirectoryMenu />
+            </div>
             
             {(isMember || isAuthenticated) && (
               <>

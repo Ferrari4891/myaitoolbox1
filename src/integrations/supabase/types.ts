@@ -236,6 +236,27 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           ad_collateral: string[] | null
@@ -756,6 +777,7 @@ export type Database = {
       messages: {
         Row: {
           author_email: string
+          author_id: string | null
           author_name: string
           created_at: string
           id: string
@@ -766,6 +788,7 @@ export type Database = {
         }
         Insert: {
           author_email: string
+          author_id?: string | null
           author_name: string
           created_at?: string
           id?: string
@@ -776,6 +799,7 @@ export type Database = {
         }
         Update: {
           author_email?: string
+          author_id?: string | null
           author_name?: string
           created_at?: string
           id?: string
@@ -884,6 +908,54 @@ export type Database = {
           },
         ]
       }
+      simple_members: {
+        Row: {
+          address: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          receive_notifications: boolean | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          receive_notifications?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          receive_notifications?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       social_posts: {
         Row: {
           company_id: string | null
@@ -929,6 +1001,36 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      venue_ratings: {
+        Row: {
+          author_email: string | null
+          author_name: string | null
+          created_at: string
+          id: string
+          rating: number
+          review: string | null
+          venue_id: string
+        }
+        Insert: {
+          author_email?: string | null
+          author_name?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          review?: string | null
+          venue_id: string
+        }
+        Update: {
+          author_email?: string | null
+          author_name?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          venue_id?: string
         }
         Relationships: []
       }

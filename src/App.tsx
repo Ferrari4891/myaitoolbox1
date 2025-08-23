@@ -14,6 +14,9 @@ import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenue from "./pages/AddVenue";
 import EditVenue from "./pages/EditVenue";
 import SimpleMemberSignIn from "./pages/SimpleMemberSignIn";
+import CoffeeShops from "./pages/CoffeeShops";
+import RestaurantCuisine from "./pages/RestaurantCuisine";
+import AddVenueForm from "./components/AddVenueForm";
 
 import ScheduleEvent from "./pages/ScheduleEvent";
 import MessageBoard from "./pages/MessageBoard";
@@ -50,9 +53,13 @@ const App = () => {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/member-sign-in" element={<SimpleMemberSignIn />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
-            <Route path="/add-venue" element={<AddVenue />} />
+            <Route path="/add-venue" element={<AddVenueForm />} />
             <Route path="/schedule-event" element={<ScheduleEvent />} />
             <Route path="/message-board" element={<MessageBoard />} />
+            
+            {/* Venue Directory Routes */}
+            <Route path="/venues/coffee-shops" element={<CoffeeShops />} />
+            <Route path="/venues/restaurants/:cuisineType" element={<RestaurantCuisine />} />
             
             <Route path="/event-rsvp" element={<EventRSVP />} />
             <Route path="/admin" element={<Admin />} />
