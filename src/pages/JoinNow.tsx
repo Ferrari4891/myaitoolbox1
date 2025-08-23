@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const JoinNow = () => {
@@ -47,20 +48,11 @@ const JoinNow = () => {
       
       // Also store in profiles table for admin management
       try {
-        const response = await fetch(`https://urczlhjnztiaxdsatueu.supabase.co/functions/v1/create-simple-member`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyY3psaGpuenRpYXhkc2F0dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3OTUyMDUsImV4cCI6MjA2NzM3MTIwNX0.0e1FjIIvCCCf3fZK6j7BsFmhuL3HT_Cc39SuQG0Mr28`
-          },
-          body: JSON.stringify(memberData)
+        await supabase.functions.invoke('create-simple-member', {
+          body: memberData
         });
-        
-        if (!response.ok) {
-          console.log('Failed to store member in database, but proceeding with local access');
-        }
       } catch (dbError) {
-        console.log('Database storage failed, but proceeding with local access');
+        console.log('Database storage failed, but proceeding with local access:', dbError);
       }
       
       toast.success("Welcome! You now have access to all features.");
