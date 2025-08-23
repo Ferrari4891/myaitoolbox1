@@ -269,7 +269,7 @@ const CuisineManagement = () => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-foreground">Cuisine Management</h2>
@@ -337,111 +337,118 @@ const CuisineManagement = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Cuisine Types ({filteredCuisines.length})</CardTitle>
         </CardHeader>
-        <CardContent className="p-3">
-          <Table>
+        <CardContent className="p-2">
+          <Table className="text-sm">
             <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sort Order</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+              <TableRow className="h-9">
+                <TableHead className="py-2 px-2 whitespace-nowrap">Name</TableHead>
+                <TableHead className="py-2 px-2 whitespace-nowrap">Description</TableHead>
+                <TableHead className="py-2 px-2 whitespace-nowrap">Status</TableHead>
+                <TableHead className="py-2 px-2 whitespace-nowrap">Sort Order</TableHead>
+                <TableHead className="py-2 px-2 whitespace-nowrap">Created</TableHead>
+                <TableHead className="py-2 px-2 text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCuisines.map((cuisine) => (
-                <TableRow key={cuisine.id}>
-                  <TableCell>
+                <TableRow key={cuisine.id} className="h-9">
+                  <TableCell className="py-1.5 px-2">
                     {editingCuisine === cuisine.id ? (
                       <Input
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
-                        className="h-8"
+                        className="h-8 text-sm"
                         autoFocus
                       />
                     ) : (
-                      <div className="font-medium">{cuisine.name}</div>
+                      <div className="font-medium truncate max-w-[180px]" title={cuisine.name}>
+                        {cuisine.name}
+                      </div>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-1.5 px-2">
                     {editingCuisine === cuisine.id ? (
                       <Textarea
                         value={editedDescription}
                         onChange={(e) => setEditedDescription(e.target.value)}
-                        className="h-16"
+                        className="h-14 text-sm"
                         rows={2}
                       />
                     ) : (
-                      <div className="text-sm text-muted-foreground max-w-xs">
-                        {cuisine.description || "No description"}
+                      <div className="text-xs text-muted-foreground max-w-[300px] truncate" title={cuisine.description || 'No description'}>
+                        {cuisine.description || 'No description'}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={cuisine.is_active ? "default" : "secondary"}>
-                      {cuisine.is_active ? "Active" : "Inactive"}
+                  <TableCell className="py-1.5 px-2">
+                    <Badge variant={cuisine.is_active ? 'default' : 'secondary'} className="px-2 py-0.5 text-[10px]">
+                      {cuisine.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="py-1.5 px-2 text-xs text-muted-foreground whitespace-nowrap">
                     {cuisine.sort_order}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="py-1.5 px-2 text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(cuisine.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-1.5 px-2 text-right">
                     <div className="flex items-center justify-end gap-1">
                       {editingCuisine === cuisine.id ? (
                         <>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => saveEdit(cuisine.id)}
                             disabled={processing.has(cuisine.id)}
-                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700"
+                            aria-label="Save"
                           >
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3.5 w-3.5" />
                           </Button>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={cancelEdit}
-                            className="h-8 w-8 p-0"
+                            className="h-7 w-7 p-0"
+                            aria-label="Cancel"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </>
                       ) : (
                         <>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => startEditing(cuisine)}
-                            className="h-8 w-8 p-0"
+                            className="h-7 w-7 p-0"
+                            aria-label="Edit"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3.5 w-3.5" />
                           </Button>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => toggleCuisineStatus(cuisine.id, cuisine.is_active)}
                             disabled={processing.has(cuisine.id)}
-                            className="h-8 w-8 p-0"
+                            className="h-7 w-7 p-0"
+                            aria-label={cuisine.is_active ? 'Deactivate' : 'Activate'}
                           >
                             {cuisine.is_active ? (
-                              <ToggleRight className="h-4 w-4 text-green-600" />
+                              <ToggleRight className="h-3.5 w-3.5 text-green-600" />
                             ) : (
-                              <ToggleLeft className="h-4 w-4 text-gray-400" />
+                              <ToggleLeft className="h-3.5 w-3.5 text-gray-400" />
                             )}
                           </Button>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => deleteCuisineType(cuisine.id, cuisine.name)}
                             disabled={processing.has(cuisine.id)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                            aria-label="Delete"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </>
                       )}
