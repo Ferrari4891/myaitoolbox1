@@ -8,6 +8,7 @@ import { EditEventDialog } from "@/components/EditEventDialog";
 import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
 import { AddMemberDialog } from "@/components/AddMemberDialog";
 import SimpleMemberManagement from "@/components/SimpleMemberManagement";
+import MessageBoardAdmin from "@/components/MessageBoardAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -1071,6 +1072,9 @@ const Admin = () => {
 
         {/* Simple Member Management Section */}
         <SimpleMemberManagement />
+
+        {/* Message Board Management Section */}
+        <MessageBoardAdmin />
 
         {/* Recent Members Section */}
         <Card className="mb-8">
