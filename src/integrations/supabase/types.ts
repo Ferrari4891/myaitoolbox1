@@ -595,6 +595,27 @@ export type Database = {
         }
         Relationships: []
       }
+      group_invitations: {
+        Row: {
+          created_at: string
+          group_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          group_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          group_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_materials: {
         Row: {
           created_at: string
@@ -699,6 +720,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          author_email: string
+          author_name: string
+          created_at: string
+          id: string
+          is_approved: boolean
+          message_text: string
+          message_type: string
+          updated_at: string
+        }
+        Insert: {
+          author_email: string
+          author_name: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_text: string
+          message_type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_text?: string
+          message_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
