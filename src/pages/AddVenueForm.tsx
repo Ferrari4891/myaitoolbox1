@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,12 +33,16 @@ const AddVenueForm = () => {
     address: '',
     phone: '',
     website: '',
+    facebook_link: '',
     description: '',
     hours: '',
     price_range: '',
     rating: '',
     features: [] as string[],
-    cuisine_types: preselectedCuisine ? [preselectedCuisine] : [] as string[]
+    cuisine_types: preselectedCuisine ? [preselectedCuisine] : [] as string[],
+    image_1_url: '',
+    image_2_url: '',
+    image_3_url: ''
   });
 
   const priceRanges = ['$', '$$', '$$$', '$$$$'];
@@ -90,6 +95,16 @@ const AddVenueForm = () => {
     }));
   };
 
+  const handleImageUpload = (imageUrl: string, imageNumber: number) => {
+    const fieldName = `image_${imageNumber}_url` as keyof typeof formData;
+    setFormData(prev => ({ ...prev, [fieldName]: imageUrl }));
+  };
+
+  const handleImageRemove = (imageNumber: number) => {
+    const fieldName = `image_${imageNumber}_url` as keyof typeof formData;
+    setFormData(prev => ({ ...prev, [fieldName]: '' }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -106,6 +121,7 @@ const AddVenueForm = () => {
         address: formData.address,
         phone: formData.phone || null,
         website: formData.website || null,
+        facebook_link: formData.facebook_link || null,
         description: formData.description || null,
         hours: formData.hours || null,
         venue_type: venueType,
@@ -113,6 +129,9 @@ const AddVenueForm = () => {
         rating: formData.rating ? parseFloat(formData.rating) : null,
         features: formData.features.length > 0 ? formData.features : null,
         cuisine_types: venueType === 'restaurant' ? formData.cuisine_types : [],
+        image_1_url: formData.image_1_url || null,
+        image_2_url: formData.image_2_url || null,
+        image_3_url: formData.image_3_url || null,
         created_by: user.id,
         status: 'pending'
       };
@@ -191,16 +210,30 @@ const AddVenueForm = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  name="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    name="website"
+                    type="url"
+                    value={formData.website}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="facebook_link">Facebook Page</Label>
+                  <Input
+                    id="facebook_link"
+                    name="facebook_link"
+                    type="url"
+                    value={formData.facebook_link}
+                    onChange={handleInputChange}
+                    placeholder="https://facebook.com/yourpage"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -215,17 +248,25 @@ const AddVenueForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hours">Hours</Label>
-                  <Input
-                    id="hours"
-                    name="hours"
-                    value={formData.hours}
-                    onChange={handleInputChange}
-                    placeholder="Mon-Sun 8AM-10PM"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="hours">Opening Hours</Label>
+                <Textarea
+                  id="hours"
+                  name="hours"
+                  value={formData.hours}
+                  onChange={handleInputChange}
+                  placeholder={`Monday: 8:00 AM - 10:00 PM
+Tuesday: 8:00 AM - 10:00 PM
+Wednesday: 8:00 AM - 10:00 PM
+Thursday: 8:00 AM - 10:00 PM
+Friday: 8:00 AM - 11:00 PM
+Saturday: 9:00 AM - 11:00 PM
+Sunday: 9:00 AM - 9:00 PM`}
+                  rows={7}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div className="space-y-2">
                   <Label htmlFor="price_range">Price Range</Label>
@@ -279,6 +320,40 @@ const AddVenueForm = () => {
                   </div>
                 </div>
               )}
+
+              {/* Image Uploads */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Venue Images</Label>
+                <p className="text-sm text-muted-foreground">
+                  Upload up to 3 images that will rotate in a carousel on your venue card.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <ImageUpload
+                      label="Image 1"
+                      currentImage={formData.image_1_url}
+                      onImageUploaded={(url) => handleImageUpload(url, 1)}
+                      onImageRemoved={() => handleImageRemove(1)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <ImageUpload
+                      label="Image 2"
+                      currentImage={formData.image_2_url}
+                      onImageUploaded={(url) => handleImageUpload(url, 2)}
+                      onImageRemoved={() => handleImageRemove(2)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <ImageUpload
+                      label="Image 3"
+                      currentImage={formData.image_3_url}
+                      onImageUploaded={(url) => handleImageUpload(url, 3)}
+                      onImageRemoved={() => handleImageRemove(3)}
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Features */}
               <div className="space-y-3">
