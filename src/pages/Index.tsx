@@ -78,7 +78,7 @@ const Index = () => {
     }
   };
 
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen">
       <HeroSection 
         backgroundImage="/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png" 
         title="" 

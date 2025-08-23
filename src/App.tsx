@@ -36,7 +36,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-green-500/5">
+        <div className="min-h-screen bg-green-500/20">
           <Toaster />
           <Sonner />
           <HashRouter>

@@ -31,7 +31,7 @@ const TipsAndTricks = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <HeroSection
         backgroundImage={jugglerHero}
         title="Tips & Tricks"
