@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail, UserPlus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail, UserPlus, Building2, UtensilsCrossed } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
 import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
 import { AddMemberDialog } from "@/components/AddMemberDialog";
 import SimpleMemberManagement from "@/components/SimpleMemberManagement";
 import MessageBoardAdmin from "@/components/MessageBoardAdmin";
+import VenueManagement from "@/components/admin/VenueManagement";
+import CuisineManagement from "@/components/admin/CuisineManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-
 
 interface Venue {
   id: string;
@@ -171,9 +173,6 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
-      console.log('Fetched members from database:', profilesData);
-      console.log('Tony Cook profiles found:', profilesData?.filter(p => p.email === 'tonycook396@gmail.com'));
-
       setRecentMembers(profilesData?.map(p => ({
         ...p,
         display_name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Unknown',
@@ -195,35 +194,6 @@ const Admin = () => {
       setBlockedUsers(data || []);
     } catch (error) {
       console.error('Error fetching blocked users:', error);
-    }
-  };
-
-  const unblockUser = async (userId: string, email: string) => {
-    if (!confirm(`Are you sure you want to unblock ${email}? They will be able to create a profile again.`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('blocked_users')
-        .delete()
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setBlockedUsers(prev => prev.filter(user => user.id !== userId));
-      
-      toast({
-        title: "User unblocked",
-        description: `${email} has been unblocked and can now create a profile.`,
-      });
-    } catch (error) {
-      console.error('Error unblocking user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to unblock user. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -311,24 +281,6 @@ const Admin = () => {
   const setupRealtimeSubscription = () => {
     const channel = supabase
       .channel('admin-realtime')
-      // Temporarily disable new member notifications to prevent deleted users from reappearing
-      // .on(
-      //   'postgres_changes',
-      //   {
-      //     event: 'INSERT',
-      //     schema: 'public',
-      //     table: 'profiles'
-      //   },
-      //   (payload) => {
-      //     const newMember = payload.new as RecentMember;
-      //     setRecentMembers(prev => [newMember, ...prev.slice(0, 9)]);
-      //     
-      //     toast({
-      //       title: "New Member Joined!",
-      //       description: `${newMember.display_name || 'New user'} just signed up`,
-      //     });
-      //   }
-      // )
       .on(
         'postgres_changes',
         {
@@ -424,8 +376,6 @@ const Admin = () => {
         .eq('id', memberId)
         .single();
       
-      console.log('Permanently removing member:', memberToDelete);
-      
       if (!memberToDelete?.user_id || !memberToDelete?.email) {
         throw new Error('Cannot find member data for deletion');
       }
@@ -450,7 +400,6 @@ const Admin = () => {
       // Update local state - remove all members with same email
       setRecentMembers(prev => {
         const updated = prev.filter(member => member.email !== memberToDelete.email);
-        console.log('Updated member list after deletion. Remaining members:', updated.length);
         return updated;
       });
 
@@ -476,8 +425,6 @@ const Admin = () => {
 
   const blockMember = async (email: string, reason?: string) => {
     try {
-      console.log('Blocking member:', email);
-      
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase
@@ -512,8 +459,6 @@ const Admin = () => {
 
   const unblockMember = async (email: string) => {
     try {
-      console.log('Unblocking member:', email);
-      
       const { error } = await supabase
         .from('blocked_users')
         .delete()
@@ -821,7 +766,7 @@ const Admin = () => {
             Admin Panel
           </h1>
           <p className="text-lg text-muted-foreground">
-            Manage venue submissions and event approvals
+            Comprehensive management dashboard
           </p>
         </div>
 
@@ -860,574 +805,139 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Event Management Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Event Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No events yet</p>
-            ) : (
-              <div className="space-y-6">
-                {events.map((event, index) => (
-                  <div key={event.id}>
-                    <div className="space-y-4">
-                      {/* Main Event Information */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg">
-                        <div>
-                          <h3 className="font-semibold text-lg">{event.group_name}</h3>
-                          <p className="text-sm text-muted-foreground">{event.venue.business_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            By: {event.creator.display_name}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Event Date</p>
-                          <p className="text-sm">{new Date(event.proposed_date).toLocaleDateString()}</p>
-                          <p className="text-xs text-muted-foreground">
-                            RSVP by: {new Date(event.rsvp_deadline).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium mb-1">Status</p>
-                          {getEventStatusBadge(event.approval_status, event.status)}
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {/* Edit button for all events */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditEvent(event)}
-                            disabled={processingEvents.has(event.id)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            title="Edit event"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="venues">
+              <Building2 className="h-4 w-4 mr-2" />
+              Venues
+            </TabsTrigger>
+            <TabsTrigger value="cuisines">
+              <UtensilsCrossed className="h-4 w-4 mr-2" />
+              Cuisines
+            </TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+          </TabsList>
 
-                          {/* Approval buttons for pending events */}
-                          {event.approval_status === 'pending' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventApproval(event.id, 'approved')}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                title="Approve event"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventApproval(event.id, 'rejected')}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Reject event"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+          <TabsContent value="overview" className="space-y-6">
+            <SimpleMemberManagement />
+            <MessageBoardAdmin />
+          </TabsContent>
 
-                          {/* Management buttons for approved events */}
-                          {event.approval_status === 'approved' && event.status !== 'cancelled' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleResendInvitation(event)}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                title="Resend invitation"
-                              >
-                                <Mail className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventCancellation(event.id)}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                title="Cancel event"
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEventRemoval(event.id)}
-                                disabled={processingEvents.has(event.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Remove event permanently"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+          <TabsContent value="venues">
+            <VenueManagement />
+          </TabsContent>
 
-                          {/* Remove button for cancelled events */}
-                          {event.status === 'cancelled' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEventRemoval(event.id)}
-                              disabled={processingEvents.has(event.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              title="Remove event permanently"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+          <TabsContent value="cuisines">
+            <CuisineManagement />
+          </TabsContent>
 
-                      {/* RSVP Information - Second Line */}
-                      <div className="p-4 bg-background border rounded-lg">
-                        <h4 className="font-medium mb-3 flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          RSVP Responses
-                        </h4>
-                        {event.rsvps && event.rsvps.length > 0 ? (
-                          <div className="space-y-4">
-                            {/* RSVP Summary */}
-                            <div className="flex gap-6">
-                              <div className="flex items-center gap-2 text-green-600">
-                                <UserCheck className="h-4 w-4" />
-                                <span className="font-medium">
-                                  {event.rsvps.filter(r => r.response === 'yes').length} Yes
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-red-600">
-                                <X className="h-4 w-4" />
-                                <span className="font-medium">
-                                  {event.rsvps.filter(r => r.response === 'no').length} No
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-yellow-600">
-                                <Clock className="h-4 w-4" />
-                                <span className="font-medium">
-                                  {event.rsvps.filter(r => r.response === 'maybe').length} Maybe
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <Mail className="h-4 w-4" />
-                                <span className="font-medium">
-                                  {event.rsvps.filter(r => !r.response).length} No Response
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* RSVP Details */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {event.rsvps.map((rsvp) => (
-                                <div key={rsvp.id} className="p-3 border rounded-md bg-muted/10">
-                                  <div className="font-medium text-sm">{rsvp.invitee_email}</div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Badge 
-                                      variant={
-                                        rsvp.response === 'yes' ? 'default' : 
-                                        rsvp.response === 'no' ? 'destructive' : 
-                                        rsvp.response === 'maybe' ? 'secondary' : 'outline'
-                                      }
-                                      className="text-xs"
-                                    >
-                                      {rsvp.response || 'No response'}
-                                    </Badge>
-                                    {rsvp.guest_count && rsvp.guest_count > 1 && (
-                                      <span className="text-xs text-muted-foreground">
-                                        +{rsvp.guest_count - 1} guests
-                                      </span>
-                                    )}
-                                  </div>
-                                  {rsvp.response_message && (
-                                    <div className="text-xs italic text-muted-foreground mt-2 bg-muted/20 p-2 rounded">
-                                      "{rsvp.response_message}"
-                                    </div>
-                                  )}
-                                  {rsvp.responded_at && (
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {new Date(rsvp.responded_at).toLocaleDateString()}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+          <TabsContent value="events">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Event Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {events.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">No events yet</p>
+                ) : (
+                  <div className="space-y-4">
+                    {events.map((event) => (
+                      <Card key={event.id} className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg">{event.group_name}</h3>
+                            <p className="text-sm text-muted-foreground">{event.venue.business_name}</p>
+                            <p className="text-sm text-muted-foreground">By: {event.creator.display_name}</p>
                           </div>
-                        ) : (
-                          <p className="text-muted-foreground">No RSVP responses yet</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Black separator line between events */}
-                    {index < events.length - 1 && (
-                      <div className="my-6">
-                        <div className="h-px bg-black"></div>
-                      </div>
-                    )}
+                          <Badge variant={event.approval_status === 'approved' ? 'default' : 'secondary'}>
+                            {event.approval_status}
+                          </Badge>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Simple Member Management Section */}
-        <SimpleMemberManagement />
-
-        {/* Message Board Management Section */}
-        <MessageBoardAdmin />
-
-        {/* Recent Members Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Admin Directory
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    setMemberTypeToAdd('admin');
-                    setIsAddMemberDialogOpen(true);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Add Administrator
-                </Button>
-                <Button
-                  onClick={() => {
-                    setMemberTypeToAdd('simple');
-                    setIsAddMemberDialogOpen(true);
-                  }}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Add Simple Member
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentMembers.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No members yet</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-medium">Name</th>
-                      <th className="text-left py-2 px-3 font-medium">Email</th>
-                      <th className="text-left py-2 px-3 font-medium">Role</th>
-                      <th className="text-left py-2 px-3 font-medium">Joined</th>
-                      <th className="text-left py-2 px-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+          <TabsContent value="members">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Member Directory
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        setMemberTypeToAdd('admin');
+                        setIsAddMemberDialogOpen(true);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Add Administrator
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setMemberTypeToAdd('simple');
+                        setIsAddMemberDialogOpen(true);
+                      }}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Add Simple Member
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {recentMembers.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">No members yet</p>
+                ) : (
+                  <div className="space-y-2">
                     {recentMembers.map((member) => (
-                      <tr key={member.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-3">
+                      <div key={member.id} className="flex items-center justify-between p-3 border rounded-md">
+                        <div>
                           <div className="font-medium">
                             {member.first_name && member.last_name 
                               ? `${member.first_name} ${member.last_name}`
                               : member.display_name || 'Name not provided'
                             }
                           </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            {member.email || 'Not provided'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <Badge variant={member.is_admin ? "default" : "outline"}>
-                            {member.is_admin ? 'Admin' : 'Member'}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            <div>{new Date(member.member_since).toLocaleDateString()}</div>
-                            <div className="text-xs opacity-75">
-                              {new Date(member.member_since).toLocaleTimeString([], { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                second: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => blockMember(member.email || '', 'Blocked by admin')}
-                              disabled={!member.email || member.is_admin}
-                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                            >
-                              <XCircle className="h-4 w-4" />
-                              Block
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeMember(
-                                member.id, 
-                                member.first_name && member.last_name 
-                                  ? `${member.first_name} ${member.last_name}`
-                                  : member.display_name || 'Member'
-                              )}
-                              disabled={removingMembers.has(member.id) || member.is_admin}
-                              className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              {removingMembers.has(member.id) ? 'Removing...' : 'Delete'}
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                          <div className="text-sm text-muted-foreground">{member.email}</div>
+                        </div>
+                        <Badge variant={member.is_admin ? "default" : "outline"}>
+                          {member.is_admin ? 'Admin' : 'Member'}
+                        </Badge>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Blocked Users Section */}
-        {blockedUsers.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <XCircle className="h-5 w-5 text-red-600" />
-                Blocked Users ({blockedUsers.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-medium">Email</th>
-                      <th className="text-left py-2 px-3 font-medium">Reason</th>
-                      <th className="text-left py-2 px-3 font-medium">Blocked Date</th>
-                      <th className="text-left py-2 px-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {blockedUsers.map((user) => (
-                      <tr key={user.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-3">
-                          <div className="font-medium">{user.email}</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            {user.reason || 'No reason specified'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="text-sm text-muted-foreground">
-                            {new Date(user.created_at).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => unblockMember(user.email)}
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Unblock
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {venues.length === 0 ? (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold text-muted-foreground mb-4">
-              No venue submissions yet
-            </h2>
-            <p className="text-muted-foreground">
-              Venue submissions will appear here for review.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {pendingVenues.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold mb-4 text-orange-600">
-                  Pending Approval ({pendingVenues.length})
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {pendingVenues.map((venue) => (
-                    <Card key={venue.id} className="overflow-hidden border-orange-200">
-                      <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-xl font-bold text-card-foreground">
-                            {venue.business_name}
-                          </CardTitle>
-                          <Badge variant={getStatusBadgeVariant(venue.status)}>
-                            {venue.status}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="space-y-4">
-                        <ImageCarousel
-                          images={getVenueImages(venue)}
-                          alt={venue.business_name}
-                          className="w-full h-48"
-                          autoPlay={true}
-                          interval={2000}
-                        />
-                        
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">
-                            {venue.description}
-                          </p>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <p className="text-sm text-muted-foreground">
-                              {venue.address}
-                            </p>
-                          </div>
-                          
-                          {venue.facebook_link && (
-                            <div className="flex items-center gap-2">
-                              <Facebook className="h-4 w-4 text-muted-foreground" />
-                              <a 
-                                href={venue.facebook_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-primary hover:text-primary/80"
-                              >
-                                Facebook Page
-                              </a>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 pt-4">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => updateVenueStatus(venue.id, 'approved')}
-                            disabled={processingVenues.has(venue.id)}
-                            className="flex-1"
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => updateVenueStatus(venue.id, 'rejected')}
-                            disabled={processingVenues.has(venue.id)}
-                            className="flex-1"
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {approvedVenues.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold mb-4 text-green-600">
-                  Approved Venues ({approvedVenues.length})
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {approvedVenues.map((venue) => (
-                    <Card key={venue.id} className="border-green-200">
-                      <CardContent className="pt-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold">{venue.business_name}</h3>
-                          <Badge variant={getStatusBadgeVariant(venue.status)}>
-                            {venue.status}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {venue.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {rejectedVenues.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold mb-4 text-red-600">
-                  Rejected Venues ({rejectedVenues.length})
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {rejectedVenues.map((venue) => (
-                    <Card key={venue.id} className="border-red-200">
-                      <CardContent className="pt-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold">{venue.business_name}</h3>
-                          <Badge variant={getStatusBadgeVariant(venue.status)}>
-                            {venue.status}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {venue.description}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateVenueStatus(venue.id, 'approved')}
-                          disabled={processingVenues.has(venue.id)}
-                          className="mt-3 w-full"
-                        >
-                          Re-approve
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <EditEventDialog 
           event={editingEvent}
           isOpen={isEditDialogOpen}
-          onClose={handleEditDialogClose}
-          onEventUpdated={handleEventUpdated}
+          onClose={() => setIsEditDialogOpen(false)}
+          onEventUpdated={fetchEvents}
         />
 
         <ResendInvitationDialog 
           event={resendingEvent}
           isOpen={isResendDialogOpen}
-          onClose={handleResendDialogClose}
+          onClose={() => setIsResendDialogOpen(false)}
         />
 
         <AddMemberDialog 
