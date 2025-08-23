@@ -52,7 +52,7 @@ const TipsAndTricks = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tips.map((tip, index) => (
             <Card key={index} className="h-full">
-              <CardHeader>
+              <CardHeader className="bg-green-500/10">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                     {index + 1}
