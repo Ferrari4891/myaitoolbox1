@@ -98,7 +98,7 @@ const ApprovedVenues = () => {
       const { data, error } = await supabase
         .from('venue_ratings')
         .select('venue_id, rating')
-        .eq('user_id', user.id);
+        .eq('author_email', user.email);
 
       if (error) throw error;
       

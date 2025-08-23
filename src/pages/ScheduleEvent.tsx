@@ -108,11 +108,14 @@ const ScheduleEvent = () => {
         // Fetch members
         const { data: membersData, error: membersError } = await supabase
           .from("profiles")
-          .select("id, user_id, display_name, email, first_name, last_name")
-          .order("display_name");
+          .select("id, user_id, email, first_name, last_name")
+          .order("first_name");
 
         if (membersError) throw membersError;
-        setMembers(membersData || []);
+        setMembers(membersData?.map(m => ({
+          ...m,
+          display_name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Unknown'
+        })) || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({

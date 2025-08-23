@@ -105,7 +105,11 @@ export default function MessageBoard() {
         if (!acc[reply.message_id]) {
           acc[reply.message_id] = [];
         }
-        acc[reply.message_id].push(reply);
+        acc[reply.message_id].push({
+          ...reply,
+          parent_reply_id: null,
+          author_id: reply.author_email
+        });
         return acc;
       }, {} as Record<string, MessageReply[]>);
 

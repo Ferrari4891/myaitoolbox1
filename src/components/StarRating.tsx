@@ -47,7 +47,7 @@ const StarRating = ({
           .from('venue_ratings')
           .update({ rating })
           .eq('venue_id', venueId)
-          .eq('user_id', user.id);
+          .eq('author_email', user.email);
 
         if (error) throw error;
         toast({ title: "Rating updated successfully!" });

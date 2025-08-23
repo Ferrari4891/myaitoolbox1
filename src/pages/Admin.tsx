@@ -165,8 +165,8 @@ const Admin = () => {
     try {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, first_name, last_name, created_at, member_since, user_id, is_admin, age_group, gender, email')
-        .order('member_since', { ascending: false })
+        .select('id, first_name, last_name, created_at, user_id, is_admin, email')
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (profilesError) throw profilesError;
@@ -174,7 +174,11 @@ const Admin = () => {
       console.log('Fetched members from database:', profilesData);
       console.log('Tony Cook profiles found:', profilesData?.filter(p => p.email === 'tonycook396@gmail.com'));
 
-      setRecentMembers(profilesData || []);
+      setRecentMembers(profilesData?.map(p => ({
+        ...p,
+        display_name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Unknown',
+        member_since: p.created_at
+      })) || []);
     } catch (error) {
       console.error('Error fetching recent members:', error);
     }
@@ -257,14 +261,14 @@ const Admin = () => {
         // Fetch creator info
         const { data: creatorData } = await supabase
           .from("profiles")
-          .select("display_name")
+          .select("first_name, last_name, email")
           .eq("user_id", event.creator_id)
           .single();
 
         // Fetch RSVP responses for this event
         const { data: rsvpData } = await supabase
           .from("invitation_rsvps")
-          .select("id, invitee_email, response, guest_count, response_message, responded_at")
+          .select("id, invitee_email, response, guest_count, response_date")
           .eq("invitation_id", event.id)
           .order("responded_at", { ascending: false });
         
@@ -283,9 +287,13 @@ const Admin = () => {
             address: venueData?.address || 'Unknown Address'
           },
           creator: {
-            display_name: creatorData?.display_name || 'Unknown Creator'
+            display_name: `${creatorData?.first_name || ''} ${creatorData?.last_name || ''}`.trim() || 'Unknown Creator'
           },
-          rsvps: rsvpData || []
+          rsvps: rsvpData?.map(r => ({
+            ...r,
+            response_message: '',
+            responded_at: r.response_date
+          })) || []
         });
       }
       
