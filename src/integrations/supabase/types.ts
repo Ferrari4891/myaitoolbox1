@@ -700,6 +700,7 @@ export type Database = {
           invitee_email: string
           response: string | null
           response_date: string | null
+          response_message: string | null
         }
         Insert: {
           created_at?: string
@@ -709,6 +710,7 @@ export type Database = {
           invitee_email: string
           response?: string | null
           response_date?: string | null
+          response_message?: string | null
         }
         Update: {
           created_at?: string
@@ -718,6 +720,7 @@ export type Database = {
           invitee_email?: string
           response?: string | null
           response_date?: string | null
+          response_message?: string | null
         }
         Relationships: []
       }
@@ -825,6 +828,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      message_replies: {
+        Row: {
+          author_email: string
+          author_name: string
+          created_at: string
+          id: string
+          message_id: string
+          reply_text: string
+        }
+        Insert: {
+          author_email: string
+          author_name: string
+          created_at?: string
+          id?: string
+          message_id: string
+          reply_text: string
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          reply_text?: string
         }
         Relationships: []
       }
@@ -1100,19 +1130,26 @@ export type Database = {
       venues: {
         Row: {
           address: string
+          average_rating: number | null
           business_name: string | null
           created_at: string
           created_by: string | null
           cuisine_types: string[] | null
           description: string | null
+          facebook_link: string | null
           features: string[] | null
+          google_maps_link: string | null
           hours: string | null
           id: string
+          image_1_url: string | null
+          image_2_url: string | null
+          image_3_url: string | null
           image_url: string | null
           name: string
           phone: string | null
           price_range: string | null
           rating: number | null
+          rating_count: number | null
           status: string
           updated_at: string
           venue_type: string
@@ -1120,19 +1157,26 @@ export type Database = {
         }
         Insert: {
           address: string
+          average_rating?: number | null
           business_name?: string | null
           created_at?: string
           created_by?: string | null
           cuisine_types?: string[] | null
           description?: string | null
+          facebook_link?: string | null
           features?: string[] | null
+          google_maps_link?: string | null
           hours?: string | null
           id?: string
+          image_1_url?: string | null
+          image_2_url?: string | null
+          image_3_url?: string | null
           image_url?: string | null
           name: string
           phone?: string | null
           price_range?: string | null
           rating?: number | null
+          rating_count?: number | null
           status?: string
           updated_at?: string
           venue_type: string
@@ -1140,19 +1184,26 @@ export type Database = {
         }
         Update: {
           address?: string
+          average_rating?: number | null
           business_name?: string | null
           created_at?: string
           created_by?: string | null
           cuisine_types?: string[] | null
           description?: string | null
+          facebook_link?: string | null
           features?: string[] | null
+          google_maps_link?: string | null
           hours?: string | null
           id?: string
+          image_1_url?: string | null
+          image_2_url?: string | null
+          image_3_url?: string | null
           image_url?: string | null
           name?: string
           phone?: string | null
           price_range?: string | null
           rating?: number | null
+          rating_count?: number | null
           status?: string
           updated_at?: string
           venue_type?: string

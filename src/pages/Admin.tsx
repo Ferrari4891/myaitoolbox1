@@ -146,7 +146,7 @@ const Admin = () => {
     try {
       const { data, error } = await supabase
         .from('venues')
-        .select('*')
+        .select('*, business_name')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
