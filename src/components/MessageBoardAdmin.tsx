@@ -31,7 +31,7 @@ interface MessageCategory {
 
 const defaultCategories: MessageCategory[] = [
   { key: 'suggestion', label: 'Suggestion', color: 'bg-blue-100 text-blue-800' },
-  { key: 'feedback', label: 'Feedback', color: 'bg-green-100 text-green-800' },
+  { key: 'feedback', label: 'Feedback', color: 'bg-blue-100 text-blue-800' },
   { key: 'question', label: 'Question', color: 'bg-yellow-100 text-yellow-800' },
   { key: 'tech_issues', label: 'Tech Issues', color: 'bg-red-100 text-red-800' },
   { key: 'new_features', label: "New feature's", color: 'bg-purple-100 text-purple-800' },
@@ -551,7 +551,7 @@ function MessageCard({ message, getCategoryInfo, onEdit, onDelete, onToggleAppro
               {message.is_approved ? (
                 <AlertTriangle className="h-3 w-3 text-yellow-600" />
               ) : (
-                <Settings className="h-3 w-3 text-green-600" />
+                <Settings className="h-3 w-3 text-blue-600" />
               )}
             </Button>
             <Button

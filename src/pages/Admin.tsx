@@ -686,7 +686,7 @@ const Admin = () => {
             Cancelled
           </Badge>;
         }
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
           <CheckCircle className="h-3 w-3 mr-1" />
           Approved
         </Badge>;
@@ -782,7 +782,7 @@ const Admin = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{approvedVenues.length}</div>
+                <div className="text-2xl font-bold text-blue-600">{approvedVenues.length}</div>
                 <div className="text-sm text-muted-foreground">Approved Venues</div>
               </div>
             </CardContent>

@@ -259,7 +259,7 @@ const EventRSVP = () => {
         <div className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
             <CardContent className="p-6 text-center">
-              <Check className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <Check className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">RSVP Submitted!</h2>
               <p className="text-muted-foreground">
                 Thank you for your response. The event organizer has been notified.

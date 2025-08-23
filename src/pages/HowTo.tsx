@@ -7,7 +7,7 @@ const HowTo = () => {
       <main className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-green-600 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-4">
               How To Get Started
             </h2>
             <p className="text-xl text-muted-foreground">
@@ -17,7 +17,7 @@ const HowTo = () => {
 
           <div className="grid gap-8 md:gap-12">
             <div className="bg-card rounded-lg p-8 shadow-lg border border-border">
-              <h3 className="text-2xl font-semibold text-green-600 mb-4">Step 1: Become a Geezer</h3>
+              <h3 className="text-2xl font-semibold text-blue-600 mb-4">Step 1: Become a Geezer</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
                 Sign up using our simple form. We only need your name and email address 
                 to get you started. No complicated registration process!
@@ -25,7 +25,7 @@ const HowTo = () => {
             </div>
 
             <div className="bg-card rounded-lg p-8 shadow-lg border border-border">
-              <h3 className="text-2xl font-semibold text-green-600 mb-4">
+              <h3 className="text-2xl font-semibold text-blue-600 mb-4">
                 Step 2: Wait for Invitations
               </h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
@@ -36,7 +36,7 @@ const HowTo = () => {
             </div>
 
             <div className="bg-card rounded-lg p-8 shadow-lg border border-border">
-              <h3 className="text-2xl font-semibold text-green-600 mb-4">
+              <h3 className="text-2xl font-semibold text-blue-600 mb-4">
                 Step 3: RSVP and Attend
               </h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
@@ -47,7 +47,7 @@ const HowTo = () => {
             </div>
 
             <div className="bg-primary/10 rounded-lg p-8 border border-primary/20">
-              <h3 className="text-2xl font-semibold text-green-600 mb-4">
+              <h3 className="text-2xl font-semibold text-blue-600 mb-4">
                 Still Confused?
               </h3>
               <p className="text-foreground text-lg leading-relaxed mb-4">

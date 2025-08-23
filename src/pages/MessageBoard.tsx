@@ -350,7 +350,7 @@ export default function MessageBoard() {
   const getMessageTypeColor = (type: string) => {
     switch (type) {
       case 'suggestion': return 'bg-blue-100 text-blue-800';
-      case 'feedback': return 'bg-green-100 text-green-800';
+      case 'feedback': return 'bg-blue-100 text-blue-800';
       case 'question': return 'bg-yellow-100 text-yellow-800';
       case 'tech_issues': return 'bg-red-100 text-red-800';
       case 'new_features': return 'bg-purple-100 text-purple-800';

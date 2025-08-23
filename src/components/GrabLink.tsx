@@ -9,12 +9,12 @@ interface Venue {
   longitude?: number;
 }
 
-const GRAB_GREEN = "#00B14F";
+const GRAB_BLUE = "#1e40af";
 // Using a data URI for the Grab logo as fallback for better mobile compatibility
 const GRAB_LOGO_SVG = `data:image/svg+xml;base64,${btoa(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="${GRAB_GREEN}">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="${GRAB_BLUE}">
   <path d="M20 15h10v5H20zm0 10h15v5H20zm0 10h12v5H20z"/>
-  <text x="50" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="${GRAB_GREEN}">Grab</text>
+  <text x="50" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="${GRAB_BLUE}">Grab</text>
 </svg>
 `)}`;
 
@@ -128,7 +128,7 @@ export function GrabLink({ venue }: GrabLinkProps) {
       aria-label="Open destination in Grab app"
       title="Open destination in Grab"
       className="inline-flex items-center gap-1 min-h-[44px] px-2 text-sm font-medium hover:opacity-80 transition-opacity whitespace-nowrap"
-      style={{ color: GRAB_GREEN }}
+      style={{ color: GRAB_BLUE }}
     >
       <img
         src={GRAB_LOGO_SVG}

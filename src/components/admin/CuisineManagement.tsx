@@ -400,7 +400,7 @@ const CuisineManagement = () => {
                             variant="ghost"
                             onClick={() => saveEdit(cuisine.id)}
                             disabled={processing.has(cuisine.id)}
-                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700"
+                            className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700"
                             aria-label="Save"
                           >
                             <Check className="h-3.5 w-3.5" />
@@ -435,7 +435,7 @@ const CuisineManagement = () => {
                             aria-label={cuisine.is_active ? 'Deactivate' : 'Activate'}
                           >
                             {cuisine.is_active ? (
-                              <ToggleRight className="h-3.5 w-3.5 text-green-600" />
+                              <ToggleRight className="h-3.5 w-3.5 text-blue-600" />
                             ) : (
                               <ToggleLeft className="h-3.5 w-3.5 text-gray-400" />
                             )}

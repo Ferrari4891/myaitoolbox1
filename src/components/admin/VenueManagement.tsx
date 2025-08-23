@@ -216,7 +216,7 @@ const VenueManagement = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Approved</Badge>;
+        return <Badge variant="default" className="bg-blue-100 text-blue-800">Approved</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>;
       default:
@@ -384,7 +384,7 @@ const VenueManagement = () => {
                             variant="ghost"
                             onClick={() => updateVenueStatus(venue.id, 'approved')}
                             disabled={processing.has(venue.id)}
-                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
                           >
                             <Check className="h-4 w-4" />
                           </Button>
