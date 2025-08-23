@@ -17,42 +17,42 @@ All colors MUST be HSL.
     --popover: 145 10% 97%;
     --popover-foreground: 220 13% 18%;
 
-    --primary: 145 100% 42%;
+    --primary: 220 100% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 145 15% 95%;
-    --secondary-foreground: 145 63% 25%;
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 220 63% 25%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 145 30% 85%;
-    --accent-foreground: 145 63% 25%;
+    --accent: 220 30% 85%;
+    --accent-foreground: 220 63% 25%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 145 63% 42%;
+    --ring: 220 63% 42%;
 
     /* Custom design tokens */
-    --brand-green: 145 63% 42%;
-    --brand-green-light: 145 45% 55%;
-    --brand-green-dark: 145 80% 30%;
+    --brand-blue: 220 63% 42%;
+    --brand-blue-light: 220 45% 55%;
+    --brand-blue-dark: 220 80% 30%;
     
     --hero-overlay: 0 0% 0%;
     --hero-text: 0 0% 100%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-green)) 0%, hsl(var(--brand-green-dark)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-blue)) 0%, hsl(var(--brand-blue-dark)) 100%);
     --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(var(--hero-overlay) / 0.4) 100%);
     
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand-green) / 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand-blue) / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 145 8% 96%;
+    --sidebar-background: 220 8% 96%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
 

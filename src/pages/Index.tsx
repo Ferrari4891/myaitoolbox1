@@ -80,7 +80,7 @@ const Index = () => {
 
   return <div className="min-h-screen">
       <HeroSection 
-        backgroundImage="/lovable-uploads/178b6d98-4629-47e5-a511-0325a803ccda.png" 
+        backgroundImage="/lovable-uploads/5f8a99df-9a98-4353-baa1-0be5ebd5f02b.png" 
         title="" 
         height="h-64 md:h-96" 
       />
