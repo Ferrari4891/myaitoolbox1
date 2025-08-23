@@ -11,12 +11,11 @@ import JoinNow from "./pages/JoinNow";
 import HowTo from "./pages/HowTo";
 import SignIn from "./pages/SignIn";
 import ApprovedVenues from "./pages/ApprovedVenues";
-import AddVenue from "./pages/AddVenue";
+import AddVenueForm from "./pages/AddVenueForm";
 import EditVenue from "./pages/EditVenue";
 import SimpleMemberSignIn from "./pages/SimpleMemberSignIn";
 import CoffeeShops from "./pages/CoffeeShops";
 import RestaurantCuisine from "./pages/RestaurantCuisine";
-import AddVenueForm from "./components/AddVenueForm";
 
 import ScheduleEvent from "./pages/ScheduleEvent";
 import MessageBoard from "./pages/MessageBoard";

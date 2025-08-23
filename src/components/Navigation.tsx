@@ -74,15 +74,12 @@ const Navigation = () => {
     { label: "Home", path: "/" },
     ...(isMember || isAuthenticated 
       ? [
-          { label: "Approved Venues", path: "/approved-venues" },
-          { label: "Add Venue", path: "/add-venue" },
           { label: "Schedule Event", path: "/schedule-event" },
           { label: "Message Board", path: "/message-board" },
         ]
       : [
           { label: "How To", path: "/how-to" },
           { label: "Tips & Tricks", path: "/tips-and-tricks" },
-          { label: "Approved Venues", path: "/approved-venues" },
           { label: "Message Board", path: "/message-board" },
         ]
     )
@@ -163,7 +160,7 @@ const Navigation = () => {
 
             {/* Venue Directory */}
             <div className="border-t pt-4 mt-4">
-              <h3 className="text-sm font-semibold text-gray-600 px-4 mb-2">Venue Directory</h3>
+              <h3 className="text-sm font-semibold text-gray-600 mb-2 px-4">Venue Directory</h3>
               <VenueDirectoryMenu />
             </div>
             
