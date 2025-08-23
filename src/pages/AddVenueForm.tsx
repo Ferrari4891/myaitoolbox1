@@ -35,7 +35,15 @@ const AddVenueForm = () => {
     website: '',
     facebook_link: '',
     description: '',
-    hours: '',
+    hours: {
+      monday: { open: '', close: '', closed: false },
+      tuesday: { open: '', close: '', closed: false },
+      wednesday: { open: '', close: '', closed: false },
+      thursday: { open: '', close: '', closed: false },
+      friday: { open: '', close: '', closed: false },
+      saturday: { open: '', close: '', closed: false },
+      sunday: { open: '', close: '', closed: false }
+    },
     price_range: '',
     rating: '',
     features: [] as string[],
@@ -105,6 +113,29 @@ const AddVenueForm = () => {
     setFormData(prev => ({ ...prev, [fieldName]: '' }));
   };
 
+  const handleHoursChange = (day: string, field: 'open' | 'close' | 'closed', value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      hours: {
+        ...prev.hours,
+        [day]: {
+          ...prev.hours[day as keyof typeof prev.hours],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const formatHoursForDatabase = (hours: typeof formData.hours) => {
+    const formattedDays = Object.entries(hours).map(([day, times]) => {
+      if (times.closed) return `${day.charAt(0).toUpperCase() + day.slice(1)}: Closed`;
+      if (!times.open || !times.close) return null;
+      return `${day.charAt(0).toUpperCase() + day.slice(1)}: ${times.open} - ${times.close}`;
+    }).filter(Boolean);
+    
+    return formattedDays.join('\n');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -123,7 +154,7 @@ const AddVenueForm = () => {
         website: formData.website || null,
         facebook_link: formData.facebook_link || null,
         description: formData.description || null,
-        hours: formData.hours || null,
+        hours: formatHoursForDatabase(formData.hours) || null,
         venue_type: venueType,
         price_range: formData.price_range || null,
         rating: formData.rating ? parseFloat(formData.rating) : null,
@@ -248,22 +279,50 @@ const AddVenueForm = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="hours">Opening Hours</Label>
-                <Textarea
-                  id="hours"
-                  name="hours"
-                  value={formData.hours}
-                  onChange={handleInputChange}
-                  placeholder={`Monday: 8:00 AM - 10:00 PM
-Tuesday: 8:00 AM - 10:00 PM
-Wednesday: 8:00 AM - 10:00 PM
-Thursday: 8:00 AM - 10:00 PM
-Friday: 8:00 AM - 11:00 PM
-Saturday: 9:00 AM - 11:00 PM
-Sunday: 9:00 AM - 9:00 PM`}
-                  rows={7}
-                />
+              {/* Opening Hours */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Opening Hours</Label>
+                <div className="space-y-3">
+                  {Object.entries(formData.hours).map(([day, times]) => (
+                    <div key={day} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border border-border rounded-lg">
+                      <div className="font-medium capitalize">{day}</div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${day}-closed`}
+                          checked={times.closed}
+                          onCheckedChange={(checked) => handleHoursChange(day, 'closed', checked as boolean)}
+                        />
+                        <Label htmlFor={`${day}-closed`} className="text-sm">Closed</Label>
+                      </div>
+                      {!times.closed && (
+                        <>
+                          <div>
+                            <Input
+                              type="time"
+                              value={times.open}
+                              onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                              placeholder="Open time"
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              type="time"
+                              value={times.close}
+                              onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                              placeholder="Close time"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {times.closed && (
+                        <>
+                          <div></div>
+                          <div></div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
