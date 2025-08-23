@@ -22,6 +22,7 @@ import Admin from "./pages/Admin";
 import AdminSignIn from "./pages/AdminSignIn";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import TipsAndTricks from "./pages/TipsAndTricks";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/join-now" element={<JoinNow />} />
             <Route path="/how-to" element={<HowTo />} />
+            <Route path="/tips-and-tricks" element={<TipsAndTricks />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/member-sign-in" element={<SimpleMemberSignIn />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />

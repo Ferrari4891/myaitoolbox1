@@ -80,6 +80,7 @@ const Navigation = () => {
         ]
       : [
           { label: "How To", path: "/how-to" },
+          { label: "Tips & Tricks", path: "/tips-and-tricks" },
           { label: "Approved Venues", path: "/approved-venues" },
           { label: "Message Board", path: "/message-board" },
         ]
