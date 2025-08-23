@@ -478,6 +478,36 @@ export type Database = {
           },
         ]
       }
+      cuisine_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           affiliate_id: string | null
@@ -899,6 +929,66 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      venues: {
+        Row: {
+          address: string
+          created_at: string
+          created_by: string | null
+          cuisine_types: string[] | null
+          description: string | null
+          features: string[] | null
+          hours: string | null
+          id: string
+          image_url: string | null
+          name: string
+          phone: string | null
+          price_range: string | null
+          rating: number | null
+          status: string
+          updated_at: string
+          venue_type: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          created_by?: string | null
+          cuisine_types?: string[] | null
+          description?: string | null
+          features?: string[] | null
+          hours?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          venue_type: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          created_by?: string | null
+          cuisine_types?: string[] | null
+          description?: string | null
+          features?: string[] | null
+          hours?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          venue_type?: string
+          website?: string | null
         }
         Relationships: []
       }
