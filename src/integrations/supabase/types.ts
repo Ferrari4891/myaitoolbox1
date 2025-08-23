@@ -648,22 +648,76 @@ export type Database = {
       }
       group_invitations: {
         Row: {
+          approval_status: string | null
           created_at: string
+          creator_id: string | null
+          custom_message: string | null
           group_name: string
           id: string
+          invite_token: string | null
+          proposed_date: string | null
+          rsvp_deadline: string | null
+          status: string | null
           updated_at: string
+          venue_id: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          created_at?: string
+          creator_id?: string | null
+          custom_message?: string | null
+          group_name: string
+          id?: string
+          invite_token?: string | null
+          proposed_date?: string | null
+          rsvp_deadline?: string | null
+          status?: string | null
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          created_at?: string
+          creator_id?: string | null
+          custom_message?: string | null
+          group_name?: string
+          id?: string
+          invite_token?: string | null
+          proposed_date?: string | null
+          rsvp_deadline?: string | null
+          status?: string | null
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Relationships: []
+      }
+      invitation_rsvps: {
+        Row: {
+          created_at: string
+          guest_count: number | null
+          id: string
+          invitation_id: string
+          invitee_email: string
+          response: string | null
+          response_date: string | null
         }
         Insert: {
           created_at?: string
-          group_name: string
+          guest_count?: number | null
           id?: string
-          updated_at?: string
+          invitation_id: string
+          invitee_email: string
+          response?: string | null
+          response_date?: string | null
         }
         Update: {
           created_at?: string
-          group_name?: string
+          guest_count?: number | null
           id?: string
-          updated_at?: string
+          invitation_id?: string
+          invitee_email?: string
+          response?: string | null
+          response_date?: string | null
         }
         Relationships: []
       }
@@ -854,6 +908,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           id: string
+          is_admin: boolean | null
           last_active: string | null
           last_name: string | null
           marketing_role: Database["public"]["Enums"]["marketing_role"] | null
@@ -871,6 +926,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          is_admin?: boolean | null
           last_active?: string | null
           last_name?: string | null
           marketing_role?: Database["public"]["Enums"]["marketing_role"] | null
@@ -888,6 +944,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          is_admin?: boolean | null
           last_active?: string | null
           last_name?: string | null
           marketing_role?: Database["public"]["Enums"]["marketing_role"] | null
@@ -918,6 +975,8 @@ export type Database = {
           emergency_contact_phone: string | null
           first_name: string | null
           id: string
+          is_active: boolean | null
+          joined_at: string | null
           last_name: string | null
           phone: string | null
           receive_notifications: boolean | null
@@ -933,6 +992,8 @@ export type Database = {
           emergency_contact_phone?: string | null
           first_name?: string | null
           id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
           last_name?: string | null
           phone?: string | null
           receive_notifications?: boolean | null
@@ -948,6 +1009,8 @@ export type Database = {
           emergency_contact_phone?: string | null
           first_name?: string | null
           id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
           last_name?: string | null
           phone?: string | null
           receive_notifications?: boolean | null
@@ -1037,6 +1100,7 @@ export type Database = {
       venues: {
         Row: {
           address: string
+          business_name: string | null
           created_at: string
           created_by: string | null
           cuisine_types: string[] | null
@@ -1056,6 +1120,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          business_name?: string | null
           created_at?: string
           created_by?: string | null
           cuisine_types?: string[] | null
@@ -1075,6 +1140,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          business_name?: string | null
           created_at?: string
           created_by?: string | null
           cuisine_types?: string[] | null

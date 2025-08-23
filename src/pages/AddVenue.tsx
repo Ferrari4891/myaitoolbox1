@@ -12,14 +12,18 @@ import { useNavigate } from "react-router-dom";
 
 const AddVenue = () => {
   const [formData, setFormData] = useState({
+    name: "",
     business_name: "",
     description: "",
     address: "",
-    google_maps_link: "",
-    facebook_link: "",
-    image_1_url: "",
-    image_2_url: "",
-    image_3_url: "",
+    website: "",
+    phone: "",
+    hours: "",
+    venue_type: "restaurant" as "restaurant" | "coffee_shop",
+    cuisine_types: [] as string[],
+    features: [] as string[],
+    price_range: "",
+    rating: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -76,8 +80,19 @@ const AddVenue = () => {
       const { error } = await supabase
         .from('venues')
         .insert({
-          ...formData,
-          submitted_by: user.id,
+          name: formData.name,
+          business_name: formData.business_name || formData.name,
+          description: formData.description,
+          address: formData.address,
+          website: formData.website,
+          phone: formData.phone,
+          hours: formData.hours,
+          venue_type: formData.venue_type,
+          cuisine_types: formData.cuisine_types,
+          features: formData.features,
+          price_range: formData.price_range || null,
+          rating: formData.rating ? parseFloat(formData.rating) : null,
+          created_by: user.id,
           status: 'pending'
         });
 

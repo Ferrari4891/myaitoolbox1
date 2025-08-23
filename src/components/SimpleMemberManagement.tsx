@@ -40,7 +40,7 @@ const SimpleMemberManagement = () => {
     try {
       const { data, error } = await supabase
         .from('simple_members')
-        .select('*')
+        .select('*, joined_at, is_active')
         .order('joined_at', { ascending: false });
 
       if (error) throw error;
