@@ -36,11 +36,12 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <HashRouter>
-          {showLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
-          <Navigation />
+        <div className="min-h-screen bg-green-500/5">
+          <Toaster />
+          <Sonner />
+          <HashRouter>
+            {showLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
+            <Navigation />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/join-now" element={<JoinNow />} />
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
