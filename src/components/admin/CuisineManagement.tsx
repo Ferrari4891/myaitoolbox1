@@ -269,13 +269,13 @@ const CuisineManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Cuisine Management</h2>
-          <p className="text-muted-foreground">Manage restaurant cuisine categories</p>
+          <h2 className="text-xl font-bold text-foreground">Cuisine Management</h2>
+          <p className="text-sm text-muted-foreground">Manage restaurant cuisine categories</p>
         </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
+        <Button onClick={() => setShowAddForm(!showAddForm)} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Add Cuisine Type
         </Button>
@@ -284,34 +284,36 @@ const CuisineManagement = () => {
       {/* Add New Cuisine Form */}
       {showAddForm && (
         <Card>
-          <CardHeader>
-            <CardTitle>Add New Cuisine Type</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Add New Cuisine Type</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium mb-2 block">Cuisine Name *</label>
+                <label className="text-sm font-medium mb-1 block">Cuisine Name *</label>
                 <Input
                   value={newCuisine.name}
                   onChange={(e) => setNewCuisine(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Italian, Mexican, Vietnamese"
+                  className="h-8"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Description</label>
+                <label className="text-sm font-medium mb-1 block">Description</label>
                 <Textarea
                   value={newCuisine.description}
                   onChange={(e) => setNewCuisine(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Brief description of this cuisine type"
-                  rows={3}
+                  rows={2}
+                  className="text-sm"
                 />
               </div>
             </div>
             <div className="flex gap-2">
-              <Button onClick={addCuisineType}>
+              <Button onClick={addCuisineType} size="sm">
                 Add Cuisine Type
               </Button>
-              <Button variant="outline" onClick={() => setShowAddForm(false)}>
+              <Button variant="outline" onClick={() => setShowAddForm(false)} size="sm">
                 Cancel
               </Button>
             </div>
@@ -326,16 +328,16 @@ const CuisineManagement = () => {
           placeholder="Search cuisine types..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-8"
         />
       </div>
 
       {/* Cuisine Types Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Cuisine Types ({filteredCuisines.length})</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Cuisine Types ({filteredCuisines.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3">
           <Table>
             <TableHeader>
               <TableRow>
