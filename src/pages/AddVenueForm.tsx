@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { GrabLink } from "@/components/GrabLink";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,7 @@ const AddVenueForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
+    google_maps_link: '',
     phone: '',
     website: '',
     facebook_link: '',
@@ -83,6 +85,13 @@ const AddVenueForm = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Auto-generate Google Maps link when address is entered
+    if (name === 'address' && value.trim()) {
+      const encodedAddress = encodeURIComponent(value.trim());
+      const googleMapsLink = `https://maps.google.com?q=${encodedAddress}`;
+      setFormData(prev => ({ ...prev, google_maps_link: googleMapsLink }));
+    }
   };
 
   const handleFeatureToggle = (feature: string) => {
@@ -150,6 +159,7 @@ const AddVenueForm = () => {
       const venueData = {
         name: formData.name,
         address: formData.address,
+        google_maps_link: formData.google_maps_link || null,
         phone: formData.phone || null,
         website: formData.website || null,
         facebook_link: formData.facebook_link || null,
@@ -239,6 +249,16 @@ const AddVenueForm = () => {
                   onChange={handleInputChange}
                   placeholder="Street address, city, state"
                 />
+                {formData.address && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <GrabLink venue={{ 
+                      id: 'temp-id', 
+                      business_name: formData.name || 'New Venue',
+                      address: formData.address,
+                      google_maps_link: formData.google_maps_link 
+                    }} />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
