@@ -393,7 +393,10 @@ export const PageManagement: React.FC = () => {
               <CardContent>
                 <div className="flex items-center text-xs text-muted-foreground mb-4">
                   <Calendar className="h-3 w-3 mr-1" />
-                  Updated {new Date(page.updated_at).toLocaleDateString()}
+                  Updated {(() => {
+                    const updated = page.updated_at ? new Date(page.updated_at) : (page.created_at ? new Date(page.created_at) : null);
+                    return updated && !isNaN(updated.getTime()) ? updated.toLocaleDateString() : 'Just now';
+                  })()}
                 </div>
                 
                 <div className="flex items-center gap-1">
