@@ -12,7 +12,7 @@ const HeroSection = ({
   height = "h-96" 
 }: HeroSectionProps) => {
   return (
-    <section className={`relative ${height} overflow-hidden`}>
+    <section className={`relative ${height} overflow-hidden border-8 border-white`}>
       {/* Background Image - responsive focus positions */}
       {/* Mobile */}
       <div 

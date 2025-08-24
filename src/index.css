@@ -50,7 +50,10 @@ All colors MUST be HSL.
     --shadow-elegant: 0 10px 30px -10px hsl(var(--brand-blue) / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --radius: 0.5rem;
+    --radius: 0rem;
+    
+    /* Site-wide blue background */
+    --site-background: 220 100% 95%;
 
     --sidebar-background: 220 8% 96%;
 
@@ -114,6 +117,16 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: hsl(var(--site-background));
+  }
+  
+  /* Text truncation utility for cards */
+  .card-text-limit {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

@@ -26,7 +26,7 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
       case 'hero':
         return (
           <div 
-            className="relative bg-gradient-subtle text-white flex items-center justify-center"
+            className="relative bg-gradient-subtle text-white flex items-center justify-center border-8 border-white"
             style={{ 
               height: `${element.position.height}px`,
               backgroundImage: element.content.backgroundImage ? `url(${element.content.backgroundImage})` : undefined,
@@ -52,7 +52,7 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
         return (
           <Card className="h-full">
             {element.content.image && (
-              <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+              <div className="aspect-video w-full overflow-hidden">
                 <img 
                   src={element.content.image} 
                   alt={element.content.title || 'Card image'}
@@ -61,10 +61,10 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
               </div>
             )}
             <CardHeader>
-              <CardTitle>{element.content.title || 'Card Title'}</CardTitle>
+              <CardTitle className="card-text-limit">{element.content.title || 'Card Title'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground card-text-limit">
                 {element.content.description || 'Card description goes here.'}
               </p>
             </CardContent>
@@ -73,17 +73,21 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
 
       case 'text-block':
         return (
-          <div className="p-6">
-            {element.content.title && (
-              <h2 className="text-2xl font-bold mb-4">{element.content.title}</h2>
-            )}
-            <div 
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ 
-                __html: element.content.content || '<p>Text content goes here.</p>' 
-              }}
-            />
-          </div>
+          <Card className="h-full">
+            <CardHeader>
+              {element.content.title && (
+                <CardTitle className="card-text-limit">{element.content.title}</CardTitle>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div 
+                className="prose max-w-none card-text-limit"
+                dangerouslySetInnerHTML={{ 
+                  __html: element.content.content || '<p>Text content goes here.</p>' 
+                }}
+              />
+            </CardContent>
+          </Card>
         );
 
       case 'image-block':
@@ -93,15 +97,15 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
               <img 
                 src={element.content.image} 
                 alt={element.content.caption || 'Image'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+              <div className="w-full h-full bg-muted flex items-center justify-center">
                 <p className="text-muted-foreground">Image placeholder</p>
               </div>
             )}
             {element.content.caption && (
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-muted-foreground card-text-limit">
                 {element.content.caption}
               </p>
             )}
