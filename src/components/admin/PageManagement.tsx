@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -291,12 +291,10 @@ export const PageManagement: React.FC = () => {
         </div>
         
         <Dialog open={isNewPageDialogOpen} onOpenChange={setIsNewPageDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              New Page
-            </Button>
-          </DialogTrigger>
+          <Button className="flex items-center gap-2" onClick={() => setIsNewPageDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Page
+          </Button>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Page</DialogTitle>
