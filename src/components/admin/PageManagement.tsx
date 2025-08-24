@@ -115,7 +115,7 @@ export const PageManagement: React.FC = () => {
         .insert({
           title: newPageData.title,
           slug: newPageData.slug,
-          template_id: newPageData.template_id || null,
+          template_id: newPageData.template_id === 'blank' ? null : newPageData.template_id,
           content: templateContent as any,
           created_by: user.id,
         })
@@ -337,7 +337,7 @@ export const PageManagement: React.FC = () => {
                     <SelectValue placeholder="Choose a template" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Blank Page</SelectItem>
+                    <SelectItem value="blank">Blank Page</SelectItem>
                     {templates.map((template) => (
                       <SelectItem key={template.id} value={template.id}>
                         {template.name}
