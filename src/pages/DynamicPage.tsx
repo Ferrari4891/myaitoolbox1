@@ -1,25 +1,35 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PageElementRenderer } from '@/components/pageBuilder/PageElementRenderer';
 import { Card } from '@/components/ui/card';
 
 const DynamicPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const [page, setPage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPage = async () => {
-      if (!slug) return;
+      // Handle home route and extract slug from pathname
+      let pageSlug = slug;
+      if (location.pathname === '/') {
+        pageSlug = 'home';
+      } else if (!slug) {
+        // Extract slug from pathname for other routes like /how-to, /tips-and-tricks
+        pageSlug = location.pathname.replace('/', '');
+      }
+
+      if (!pageSlug) return;
 
       try {
         setLoading(true);
         const { data, error } = await supabase
           .from('pages')
           .select('*')
-          .eq('slug', slug)
+          .eq('slug', pageSlug)
           .eq('is_published', true)
           .single();
 
@@ -42,7 +52,7 @@ const DynamicPage = () => {
     };
 
     fetchPage();
-  }, [slug]);
+  }, [slug, location.pathname]);
 
   if (loading) {
     return (

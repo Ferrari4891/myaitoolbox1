@@ -46,10 +46,10 @@ const App = () => {
             {showLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
             <Navigation />
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<DynamicPage />} />
             <Route path="/join-now" element={<JoinNow />} />
-            <Route path="/how-to" element={<HowTo />} />
-            <Route path="/tips-and-tricks" element={<TipsAndTricks />} />
+            <Route path="/how-to" element={<DynamicPage />} />
+            <Route path="/tips-and-tricks" element={<DynamicPage />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/member-sign-in" element={<SimpleMemberSignIn />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
