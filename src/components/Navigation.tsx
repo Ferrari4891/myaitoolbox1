@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,31 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [publishedPages, setPublishedPages] = useState<any[]>([]);
   const location = useLocation();
   const { isAuthenticated, user } = useAuth(); // Keep for admin functionality
   const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth(); // New simple auth
   const { toast } = useToast();
+
+  // Fetch published pages for the menu
+  useEffect(() => {
+    const fetchPublishedPages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('pages')
+          .select('title, slug')
+          .eq('is_published', true)
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        setPublishedPages(data || []);
+      } catch (error) {
+        console.error('Error fetching published pages:', error);
+      }
+    };
+
+    fetchPublishedPages();
+  }, []);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -82,7 +103,12 @@ const Navigation = () => {
           { label: "Tips & Tricks", path: "/tips-and-tricks" },
           { label: "Message Board", path: "/message-board" },
         ]
-    )
+    ),
+    // Add published pages to the menu
+    ...publishedPages.map(page => ({
+      label: page.title,
+      path: `/page/${page.slug}`
+    }))
   ];
 
   const isActive = (path: string) => location.pathname === path;

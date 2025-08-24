@@ -25,6 +25,7 @@ import AdminSignIn from "./pages/AdminSignIn";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import TipsAndTricks from "./pages/TipsAndTricks";
+import DynamicPage from "./pages/DynamicPage";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => {
             <Route path="/edit-venue/:id" element={<EditVenue />} />
             <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/join" element={<Navigate to="/join-now" replace />} />
+            <Route path="/page/:slug" element={<DynamicPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
