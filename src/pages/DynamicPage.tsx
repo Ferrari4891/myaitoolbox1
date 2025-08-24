@@ -26,6 +26,7 @@ const DynamicPage = () => {
 
       try {
         setLoading(true);
+        setError(null); // Clear previous errors
         const { data, error } = await supabase
           .from('pages')
           .select('*')
