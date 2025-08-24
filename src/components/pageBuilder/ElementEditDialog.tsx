@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageElement } from '@/types/pageBuilder';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface ElementEditDialogProps {
   isOpen: boolean;
@@ -103,22 +104,23 @@ export const ElementEditDialog: React.FC<ElementEditDialogProps> = ({
             {editedElement.type === 'content-card' && (
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
+                <RichTextEditor
                   value={editedElement.content.description || ''}
-                  onChange={(e) => updateContent('description', e.target.value)}
+                  onChange={(value) => updateContent('description', value)}
+                  placeholder="Enter description..."
+                  height="150px"
                 />
               </div>
             )}
 
             {editedElement.type === 'text-block' && (
               <div>
-                <Label htmlFor="content">Content (HTML)</Label>
-                <Textarea
-                  id="content"
+                <Label htmlFor="content">Content</Label>
+                <RichTextEditor
                   value={editedElement.content.content || ''}
-                  onChange={(e) => updateContent('content', e.target.value)}
-                  rows={6}
+                  onChange={(value) => updateContent('content', value)}
+                  placeholder="Enter your content..."
+                  height="300px"
                 />
               </div>
             )}

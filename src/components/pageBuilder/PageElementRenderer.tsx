@@ -64,9 +64,12 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
               <CardTitle className="card-text-limit">{element.content.title || 'Card Title'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground card-text-limit">
-                {element.content.description || 'Card description goes here.'}
-              </p>
+              <div 
+                className="text-muted-foreground card-text-limit prose max-w-none"
+                dangerouslySetInnerHTML={{ 
+                  __html: element.content.description || 'Card description goes here.' 
+                }}
+              />
             </CardContent>
           </Card>
         );
