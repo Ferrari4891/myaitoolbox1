@@ -12,18 +12,20 @@ const DynamicPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Determine the slug to load
+    let pageSlug = slug;
+    if (location.pathname === '/') {
+      pageSlug = 'home';
+    } else if (!slug) {
+      // Extract slug from pathname for other routes like /how-to, /tips-and-tricks
+      pageSlug = location.pathname.replace('/', '');
+    }
+
+    if (!pageSlug) return;
+
+    let isMounted = true;
+
     const fetchPage = async () => {
-      // Handle home route and extract slug from pathname
-      let pageSlug = slug;
-      if (location.pathname === '/') {
-        pageSlug = 'home';
-      } else if (!slug) {
-        // Extract slug from pathname for other routes like /how-to, /tips-and-tricks
-        pageSlug = location.pathname.replace('/', '');
-      }
-
-      if (!pageSlug) return;
-
       try {
         setLoading(true);
         setError(null); // Clear previous errors
@@ -43,16 +45,43 @@ const DynamicPage = () => {
           return;
         }
 
-        setPage(data);
+        if (isMounted) setPage(data);
       } catch (error) {
         console.error('Error fetching page:', error);
-        setError('Failed to load page');
+        if (isMounted) setError('Failed to load page');
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
+    // Initial fetch
     fetchPage();
+
+    // Refetch when the tab regains focus
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPage();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Subscribe to realtime updates for this page
+    const channel = supabase
+      .channel(`pages-updates-${pageSlug}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'pages', filter: `slug=eq.${pageSlug}` },
+        () => {
+          fetchPage();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [slug, location.pathname]);
 
   if (loading) {
