@@ -11,7 +11,7 @@ import SignInDialog from "@/components/SignInDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMenuHierarchy, MenuItem } from "@/hooks/useMenuHierarchy";
 import * as icons from "lucide-react";
-
+import myLogo from "@/assets/myaitoolbox-logo.png";
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
@@ -193,7 +193,7 @@ const Navigation = () => {
           {/* Logo and Site Name */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/src/assets/myaitoolbox-logo.png" 
+              src={myLogo} 
               alt="MyAIToolbox Logo" 
               className="h-12 w-12"
             />
