@@ -287,35 +287,42 @@ const MenuManagement = () => {
     }
 
     try {
-      // Get the flat list of all menu items
       const flatItems = flattenMenuItems(menuItems);
-      const oldIndex = flatItems.findIndex((item) => item.id === active.id);
-      const newIndex = flatItems.findIndex((item) => item.id === over.id);
+      const activeItem = flatItems.find((item) => item.id === active.id);
+      const overItem = flatItems.find((item) => item.id === over.id);
+      if (!activeItem || !overItem) return;
 
+      // Only allow reordering among siblings (same parent)
+      const sameParent = (activeItem.parent_id || null) === (overItem.parent_id || null);
+      if (!sameParent) {
+        toast({
+          title: "Reordering restricted",
+          description: "Drag-and-drop only reorders items within the same parent.",
+        });
+        return;
+      }
+
+      const siblings = flatItems.filter(
+        (i) => (i.parent_id || null) === (activeItem.parent_id || null)
+      );
+      const oldIndex = siblings.findIndex((item) => item.id === active.id);
+      const newIndex = siblings.findIndex((item) => item.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
 
-      // Reorder the array
-      const reorderedItems = arrayMove(flatItems, oldIndex, newIndex);
+      const reorderedSiblings = arrayMove(siblings, oldIndex, newIndex);
 
-      // Update sort_order for all affected items
-      const updates = reorderedItems.map((item, index) => ({
-        id: item.id,
-        sort_order: index + 1
-      }));
-
-      // Update all items in the database
-      for (const update of updates) {
+      for (let i = 0; i < reorderedSiblings.length; i++) {
+        const sibling = reorderedSiblings[i];
         const { error } = await supabase
           .from('menu_items')
-          .update({ sort_order: update.sort_order })
-          .eq('id', update.id);
-        
+          .update({ sort_order: i + 1 })
+          .eq('id', sibling.id);
         if (error) throw error;
       }
 
       toast({
         title: "Menu reordered",
-        description: "The menu items have been successfully reordered."
+        description: "The menu items have been successfully reordered.",
       });
 
       refetch();
@@ -324,7 +331,7 @@ const MenuManagement = () => {
       toast({
         title: "Error",
         description: `Failed to reorder menu items: ${error?.message || 'Unknown error'}`,
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
