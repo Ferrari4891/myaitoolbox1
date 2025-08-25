@@ -104,76 +104,78 @@ const CoffeeShops = () => {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
+            <ul className="space-y-6">
               {venues.map((venue) => (
-                <Card key={venue.id} className="shadow-elegant hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{venue.name}</CardTitle>
-                      {venue.rating && (
-                        <div className="flex items-center text-yellow-500">
-                          <Star className="h-4 w-4 fill-current" />
-                          <span className="ml-1 text-sm">{venue.rating}</span>
+                <li key={venue.id} className="w-full">
+                  <Card className="shadow-elegant hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-xl">{venue.name}</CardTitle>
+                        {venue.rating && (
+                          <div className="flex items-center text-yellow-500">
+                            <Star className="h-4 w-4 fill-current" />
+                            <span className="ml-1 text-sm">{venue.rating}</span>
+                          </div>
+                        )}
+                      </div>
+                      {venue.price_range && (
+                        <div className="text-primary font-semibold">{venue.price_range}</div>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {venue.description && (
+                        <CardDescription>{venue.description}</CardDescription>
+                      )}
+                      
+                      <div className="flex items-start space-x-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>{venue.address}</span>
+                      </div>
+
+                      {venue.phone && (
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Phone className="h-4 w-4" />
+                          <span>{venue.phone}</span>
                         </div>
                       )}
-                    </div>
-                    {venue.price_range && (
-                      <div className="text-primary font-semibold">{venue.price_range}</div>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {venue.description && (
-                      <CardDescription>{venue.description}</CardDescription>
-                    )}
-                    
-                    <div className="flex items-start space-x-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      <span>{venue.address}</span>
-                    </div>
 
-                    {venue.phone && (
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        <span>{venue.phone}</span>
-                      </div>
-                    )}
-
-                    {venue.website && (
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Globe className="h-4 w-4" />
-                        <a
-                          href={venue.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          Visit Website
-                        </a>
-                      </div>
-                    )}
-
-                    {venue.hours && (
-                      <div className="text-sm text-muted-foreground">
-                        <strong>Hours:</strong> {venue.hours}
-                      </div>
-                    )}
-
-                    {venue.features && venue.features.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {venue.features.map((feature, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-full"
+                      {venue.website && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Globe className="h-4 w-4" />
+                          <a
+                            href={venue.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
                           >
-                            {feature}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                            Visit Website
+                          </a>
+                        </div>
+                      )}
+
+                      {venue.hours && (
+                        <div className="text-sm text-muted-foreground">
+                          <strong>Hours:</strong> {venue.hours}
+                        </div>
+                      )}
+
+                      {venue.features && venue.features.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          {venue.features.map((feature, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-full"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </main>

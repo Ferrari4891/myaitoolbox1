@@ -49,25 +49,27 @@ const TipsAndTricks = () => {
           </p>
         </div>
         
-        <div className="flex flex-col gap-6">
+        <ul className="space-y-6">
           {tips.map((tip, index) => (
-            <Card key={index} className="h-full">
-              <CardHeader className="bg-blue-500/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                    {index + 1}
+            <li key={index} className="w-full">
+              <Card className="h-full">
+                <CardHeader className="bg-blue-500/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                      {index + 1}
+                    </div>
+                    <CardTitle className="text-xl">{tip.title}</CardTitle>
                   </div>
-                  <CardTitle className="text-xl">{tip.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  {tip.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    {tip.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </li>
           ))}
-        </div>
+        </ul>
       </main>
     </div>
   );

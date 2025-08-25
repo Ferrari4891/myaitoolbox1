@@ -156,9 +156,9 @@ const ApprovedVenues = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <ul className="space-y-6">
             {venues.map((venue) => (
-              <div key={venue.id} className="relative">
+              <li key={venue.id} className="relative">
                 <div className="absolute top-6 right-6 z-20">
                   <StarRating
                     venueId={venue.id}
@@ -183,9 +183,9 @@ const ApprovedVenues = () => {
                     </Button>
                   </div>
                 )}
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </main>
     </div>
