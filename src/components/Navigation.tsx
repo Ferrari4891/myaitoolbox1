@@ -234,7 +234,7 @@ const Navigation = () => {
                   onClick={handleSignOut}
                   variant="outline"
                   size="sm"
-                  className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  className="text-blue-600 border-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
                   <LogOut className="h-4 w-4 mr-1" />
                   Sign Out

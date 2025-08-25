@@ -12,7 +12,91 @@ import { Plus, Edit, Trash2, MoveUp, MoveDown, GripVertical } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMenuHierarchy, MenuItem } from "@/hooks/useMenuHierarchy";
-// import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"; // TODO: Add drag and drop later
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Menu Item Component
+const SortableMenuItem = ({ item, onEdit, onDelete, level = 0 }: { 
+  item: MenuItem; 
+  onEdit: (item: MenuItem) => void; 
+  onDelete: (id: string) => void; 
+  level?: number;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card className={`ml-${level * 4} cursor-move`}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <h4 className="font-medium">{item.name}</h4>
+                <p className="text-sm text-muted-foreground">{item.href}</p>
+                {item.icon_name && (
+                  <Badge variant="secondary" className="mt-1">
+                    Icon: {item.icon_name}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(item);
+                }}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 const MenuManagement = () => {
   const { menuItems, loading, refetch } = useMenuHierarchy();
@@ -20,6 +104,13 @@ const MenuManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const [formData, setFormData] = useState({
     name: '',
@@ -171,46 +262,55 @@ const MenuManagement = () => {
     }
   };
 
-  const renderMenuItem = (item: MenuItem, level = 0) => (
-    <div key={item.id} className="space-y-2">
-      <Card className={`ml-${level * 4}`}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <h4 className="font-medium">{item.name}</h4>
-                <p className="text-sm text-muted-foreground">{item.href}</p>
-                {item.icon_name && (
-                  <Badge variant="secondary" className="mt-1">
-                    Icon: {item.icon_name}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEdit(item)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(item.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {item.children && item.children.map(child => renderMenuItem(child, level + 1))}
-    </div>
-  );
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    try {
+      // Get the flat list of all menu items
+      const flatItems = flattenMenuItems(menuItems);
+      const oldIndex = flatItems.findIndex((item) => item.id === active.id);
+      const newIndex = flatItems.findIndex((item) => item.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      // Reorder the array
+      const reorderedItems = arrayMove(flatItems, oldIndex, newIndex);
+
+      // Update sort_order for all affected items
+      const updates = reorderedItems.map((item, index) => ({
+        id: item.id,
+        sort_order: index + 1
+      }));
+
+      // Update all items in the database
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('menu_items')
+          .update({ sort_order: update.sort_order })
+          .eq('id', update.id);
+        
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Menu reordered",
+        description: "The menu items have been successfully reordered."
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error reordering menu items:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reorder menu items.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const flattenMenuItems = (items: MenuItem[]): MenuItem[] => {
     const flattened: MenuItem[] = [];
@@ -358,12 +458,32 @@ const MenuManagement = () => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Current Menu Structure</h3>
+        <p className="text-sm text-muted-foreground">Drag and drop to reorder menu items</p>
         {menuItems.length === 0 ? (
           <p className="text-muted-foreground">No menu items found.</p>
         ) : (
-          <div className="space-y-2">
-            {menuItems.map(item => renderMenuItem(item))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={flattenMenuItems(menuItems).map(item => item.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {flattenMenuItems(menuItems).map(item => (
+                  <SortableMenuItem 
+                    key={item.id}
+                    item={item}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    level={item.depth}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>
