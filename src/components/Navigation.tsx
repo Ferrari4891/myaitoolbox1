@@ -224,7 +224,7 @@ const Navigation = () => {
                   onClick={() => setShowSignInDialog(true)}
                   variant="outline"
                   size="sm"
-                  className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  className="text-blue-600 border-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
                 >
                   Sign In
                 </Button>
@@ -289,7 +289,7 @@ const Navigation = () => {
                       setIsOpen(false);
                     }}
                     variant="outline"
-                    className="w-full py-3 px-4 rounded-md transition-smooth"
+                    className="w-full py-3 px-4 rounded-md transition-smooth text-blue-600 border-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
                   >
                     Sign In
                   </Button>
