@@ -184,6 +184,52 @@ const Navigation = () => {
               </Link>
             ))}
 
+            {/* Add Venue and Add Event for authenticated users */}
+            {(isMember || isAuthenticated) && (
+              <>
+                <Link
+                  to="/add-venue"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
+                >
+                  Add a Venue
+                </Link>
+                <Link
+                  to="/add-event"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
+                >
+                  Add an Event
+                </Link>
+              </>
+            )}
+
+            {/* Add Venue and Add Event for non-authenticated users */}
+            {!isMember && !isAuthenticated && (
+              <>
+                <div
+                  onClick={() => {
+                    setShowJoinDialog(true);
+                    setIsOpen(false);
+                  }}
+                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth cursor-pointer"
+                >
+                  Add a Venue
+                  <p className="text-xs text-gray-600 mt-1">You have to be signed in as a member to use this function. Join now It's FREE!</p>
+                </div>
+                <div
+                  onClick={() => {
+                    setShowJoinDialog(true);
+                    setIsOpen(false);
+                  }}
+                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth cursor-pointer"
+                >
+                  Add an Event
+                  <p className="text-xs text-gray-600 mt-1">You have to be signed in as a member to use this function. Join now It's FREE!</p>
+                </div>
+              </>
+            )}
+
             {/* Venue Directory */}
             <div className="border-t pt-4 mt-4">
               <h3 className="text-sm font-semibold text-gray-600 mb-2 px-4">Venue Directory</h3>

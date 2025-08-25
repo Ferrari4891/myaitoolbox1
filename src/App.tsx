@@ -12,6 +12,8 @@ import HowTo from "./pages/HowTo";
 import SignIn from "./pages/SignIn";
 import ApprovedVenues from "./pages/ApprovedVenues";
 import AddVenueForm from "./pages/AddVenueForm";
+import EnhancedVenueForm from "./components/EnhancedVenueForm";
+import EventCreationForm from "./components/EventCreationForm";
 import EditVenue from "./pages/EditVenue";
 import SimpleMemberSignIn from "./pages/SimpleMemberSignIn";
 import CoffeeShops from "./pages/CoffeeShops";
@@ -53,7 +55,8 @@ const App = () => {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/member-sign-in" element={<SimpleMemberSignIn />} />
             <Route path="/approved-venues" element={<ApprovedVenues />} />
-            <Route path="/add-venue" element={<AddVenueForm />} />
+            <Route path="/add-venue" element={<EnhancedVenueForm />} />
+            <Route path="/add-event" element={<EventCreationForm />} />
             <Route path="/schedule-event" element={<ScheduleEvent />} />
             <Route path="/message-board" element={<MessageBoard />} />
             
