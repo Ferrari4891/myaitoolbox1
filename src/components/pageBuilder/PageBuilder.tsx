@@ -96,8 +96,37 @@ export const PageBuilder: React.FC<PageBuilderProps> = ({ page, onSave, onPublis
     setIsEditDialogOpen(true);
   };
 
-  const saveElementEdit = (updatedElement: PageElement) => {
-    setElements(elements.map(el => el.id === updatedElement.id ? updatedElement : el));
+  const saveElementEdit = async (updatedElement: PageElement) => {
+    const newElements = elements.map(el => el.id === updatedElement.id ? updatedElement : el);
+    setElements(newElements);
+    
+    // Auto-save the page when an element is edited
+    if (page?.id) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        await supabase
+          .from('pages')
+          .update({
+            content: newElements as any,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', page.id);
+
+        toast({
+          title: "Changes Saved",
+          description: "Element changes have been saved automatically.",
+        });
+      } catch (error: any) {
+        console.error('Error auto-saving element changes:', error);
+        toast({
+          title: "Auto-save Failed",
+          description: "Please use the Save button to save your changes manually.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const duplicateElement = (element: PageElement) => {
