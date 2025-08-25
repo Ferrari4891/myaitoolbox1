@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail, UserPlus, Building2, UtensilsCrossed, FileText } from "lucide-react";
+import { MapPin, Facebook, Check, X, Users, Trash2, Calendar, CalendarIcon, Clock, CheckCircle, XCircle, Settings, Edit, MessageCircle, UserCheck, Mail, UserPlus, Building2, UtensilsCrossed, FileText, Menu } from "lucide-react";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { EditEventDialog } from "@/components/EditEventDialog";
 import { ResendInvitationDialog } from "@/components/ResendInvitationDialog";
@@ -15,6 +15,7 @@ import CuisineManagement from "@/components/admin/CuisineManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { EventManagement } from "@/components/admin/EventManagement";
 import { AdminVenueCreation } from "@/components/admin/AdminVenueCreation";
+import MenuManagement from "@/components/admin/MenuManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -826,8 +827,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="menu">
+              <Menu className="h-4 w-4 mr-2" />
+              Menu
+            </TabsTrigger>
             <TabsTrigger value="pages">
               <FileText className="h-4 w-4 mr-2" />
               Pages
@@ -847,6 +852,10 @@ const Admin = () => {
           <TabsContent value="overview" className="space-y-6">
             <SimpleMemberManagement />
             <MessageBoardAdmin />
+          </TabsContent>
+
+          <TabsContent value="menu">
+            <MenuManagement />
           </TabsContent>
 
           <TabsContent value="pages">

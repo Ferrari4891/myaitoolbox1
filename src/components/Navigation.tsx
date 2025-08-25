@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X, LogOut, ChevronDown, Calendar, MapPin, Plus } from "lucide-react";
+import { Menu, X, LogOut, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,40 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import JoinNowDialog from "@/components/JoinNowDialog";
 import SignInDialog from "@/components/SignInDialog";
-import { VenueDirectoryMenu } from "@/components/VenueDirectoryMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMenuHierarchy, MenuItem } from "@/hooks/useMenuHierarchy";
+import * as icons from "lucide-react";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
-  const [publishedPages, setPublishedPages] = useState<any[]>([]);
-  const [showVenueDropdown, setShowVenueDropdown] = useState(false);
-  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth();
   const { toast } = useToast();
-
-  // Fetch published pages for the menu
-  useEffect(() => {
-    const fetchPublishedPages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('pages')
-          .select('title, slug')
-          .eq('is_published', true)
-          .order('created_at', { ascending: true });
-        
-        if (error) throw error;
-        setPublishedPages(data || []);
-      } catch (error) {
-        console.error('Error fetching published pages:', error);
-      }
-    };
-
-    fetchPublishedPages();
-  }, []);
+  const { menuItems, loading } = useMenuHierarchy();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -103,35 +83,104 @@ const Navigation = () => {
     setShowJoinDialog(true);
   };
 
-  const mobileMenuItems = [
-    { label: "Home", path: "/" },
-    ...(isMember || isAuthenticated 
-      ? [
-          { label: "Schedule Event", path: "/schedule-event" },
-          { label: "Message Board", path: "/message-board" },
-        ]
-      : [
-          { label: "How To", path: "/how-to" },
-          { label: "Tips & Tricks", path: "/tips-and-tricks" },
-          { label: "Message Board", path: "/message-board" },
-        ]
-    ),
-    ...publishedPages.map(page => ({
-      label: page.title,
-      path: `/page/${page.slug}`
-    }))
-  ];
+  const getIcon = (iconName?: string) => {
+    if (!iconName) return null;
+    const IconComponent = (icons as any)[iconName];
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
+  };
 
-  const desktopMenuItems = [
-    { label: "Home", path: "/" },
-    { label: "How To", path: "/how-to" },
-    { label: "Tips & Tricks", path: "/tips-and-tricks" },
-    { label: "Message Board", path: "/message-board" },
-    ...publishedPages.map(page => ({
-      label: page.title,
-      path: `/page/${page.slug}`
-    }))
-  ];
+  const handleMenuClick = (item: MenuItem, e: React.MouseEvent) => {
+    // Check if this is a restricted item for non-members
+    const restrictedPaths = ['/add-venue', '/schedule-event'];
+    if (restrictedPaths.includes(item.href) && !isMember && !isAuthenticated) {
+      e.preventDefault();
+      handleRestrictedAction(item.name);
+      return;
+    }
+    
+    // Close mobile menu
+    setIsOpen(false);
+  };
+
+  const renderDesktopMenuItem = (item: MenuItem) => {
+    const hasChildren = item.children && item.children.length > 0;
+    
+    if (hasChildren) {
+      return (
+        <div key={item.id} className="relative">
+          <button
+            onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
+            onMouseEnter={() => setActiveDropdown(item.id)}
+            onMouseLeave={() => setTimeout(() => setActiveDropdown(null), 200)}
+            className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
+          >
+            {getIcon(item.icon_name)}
+            <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
+            <ChevronDown className="h-4 w-4 ml-1" />
+          </button>
+          {activeDropdown === item.id && (
+            <div 
+              className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-50"
+              onMouseEnter={() => setActiveDropdown(item.id)}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <div className="py-2">
+                {item.children?.map((child) => (
+                  <Link
+                    key={child.id}
+                    to={child.href}
+                    onClick={(e) => handleMenuClick(child, e)}
+                    className="flex items-center px-4 py-2 text-foreground hover:bg-muted transition-smooth"
+                  >
+                    {getIcon(child.icon_name)}
+                    <span className={child.icon_name ? "ml-2" : ""}>{child.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.id}
+        to={item.href}
+        onClick={(e) => handleMenuClick(item, e)}
+        className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium ${
+          isActive(item.href) ? "border-b-2 border-primary-foreground" : ""
+        }`}
+      >
+        {getIcon(item.icon_name)}
+        <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
+      </Link>
+    );
+  };
+
+  const renderMobileMenuItem = (item: MenuItem, level = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    
+    return (
+      <div key={item.id}>
+        <Link
+          to={item.href}
+          onClick={(e) => handleMenuClick(item, e)}
+          className={`flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth ${
+            level > 0 ? `ml-${level * 4}` : ""
+          } ${isActive(item.href) ? "bg-muted font-semibold" : ""}`}
+        >
+          {getIcon(item.icon_name)}
+          <span className={item.icon_name ? "ml-2" : ""}>{item.name}</span>
+        </Link>
+        {hasChildren && (
+          <div className="ml-4">
+            {item.children?.map(child => renderMobileMenuItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -151,99 +200,7 @@ const Navigation = () => {
 
           {/* Desktop Navigation - Hidden on mobile */}
           <div className="hidden lg:flex items-center space-x-6">
-            {/* Regular navigation items */}
-            {desktopMenuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium ${
-                  isActive(item.path) ? "border-b-2 border-primary-foreground" : ""
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-
-            {/* Add Items Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowAddDropdown(!showAddDropdown)}
-                className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
-                onBlur={() => setTimeout(() => setShowAddDropdown(false), 200)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </button>
-              {showAddDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-elegant z-50">
-                  <div className="py-2">
-                    {(isMember || isAuthenticated) ? (
-                      <>
-                        <Link
-                          to="/add-venue"
-                          className="block px-4 py-2 text-foreground hover:bg-muted transition-smooth"
-                          onClick={() => setShowAddDropdown(false)}
-                        >
-                          <MapPin className="h-4 w-4 inline mr-2" />
-                          Add a Venue
-                        </Link>
-                        <Link
-                          to="/add-event"
-                          className="block px-4 py-2 text-foreground hover:bg-muted transition-smooth"
-                          onClick={() => setShowAddDropdown(false)}
-                        >
-                          <Calendar className="h-4 w-4 inline mr-2" />
-                          Add an Event
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => {
-                            handleRestrictedAction("Add a Venue");
-                            setShowAddDropdown(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-foreground hover:bg-muted transition-smooth"
-                        >
-                          <MapPin className="h-4 w-4 inline mr-2" />
-                          Add a Venue
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleRestrictedAction("Add an Event");
-                            setShowAddDropdown(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-foreground hover:bg-muted transition-smooth"
-                        >
-                          <Calendar className="h-4 w-4 inline mr-2" />
-                          Add an Event
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Venue Directory Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowVenueDropdown(!showVenueDropdown)}
-                className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
-                onBlur={() => setTimeout(() => setShowVenueDropdown(false), 200)}
-              >
-                Venue Directory
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </button>
-              {showVenueDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-elegant z-50">
-                  <div className="py-2">
-                    <VenueDirectoryMenu />
-                  </div>
-                </div>
-              )}
-            </div>
+            {!loading && menuItems.map(item => renderDesktopMenuItem(item))}
 
             {/* Auth buttons/menu */}
             {!isMember && !isAuthenticated ? (
@@ -332,74 +289,7 @@ const Navigation = () => {
               )}
 
               {/* Navigation menu items */}
-              {mobileMenuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth ${
-                    isActive(item.path) ? "bg-muted font-semibold" : ""
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-
-              {/* Add Venue and Add Event for authenticated users */}
-              {(isMember || isAuthenticated) && (
-                <div className="border-t pt-4 mt-4">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Add Content</h3>
-                  <Link
-                    to="/add-venue"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Add a Venue
-                  </Link>
-                  <Link
-                    to="/add-event"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Add an Event
-                  </Link>
-                </div>
-              )}
-
-              {/* Add Venue and Add Event for non-authenticated users */}
-              {!isMember && !isAuthenticated && (
-                <div className="border-t pt-4 mt-4">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Add Content</h3>
-                  <button
-                    onClick={() => {
-                      handleRestrictedAction("Add a Venue");
-                      setIsOpen(false);
-                    }}
-                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Add a Venue
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleRestrictedAction("Add an Event");
-                      setIsOpen(false);
-                    }}
-                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Add an Event
-                  </button>
-                </div>
-              )}
-
-              {/* Venue Directory */}
-              <div className="border-t pt-4 mt-4">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Venue Directory</h3>
-                <VenueDirectoryMenu />
-              </div>
+              {!loading && menuItems.map(item => renderMobileMenuItem(item))}
               
               {(isMember || isAuthenticated) && (
                 <div className="border-t pt-4 mt-4">
