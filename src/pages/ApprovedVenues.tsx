@@ -156,7 +156,7 @@ const ApprovedVenues = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-6">
             {venues.map((venue) => (
               <div key={venue.id} className="relative">
                 <div className="absolute top-6 right-6 z-20">
