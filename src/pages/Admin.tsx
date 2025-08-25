@@ -13,6 +13,8 @@ import MessageBoardAdmin from "@/components/MessageBoardAdmin";
 import VenueManagement from "@/components/admin/VenueManagement";
 import CuisineManagement from "@/components/admin/CuisineManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
+import { EventManagement } from "@/components/admin/EventManagement";
+import { AdminVenueCreation } from "@/components/admin/AdminVenueCreation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -88,6 +90,7 @@ const Admin = () => {
   const [recentMembers, setRecentMembers] = useState<RecentMember[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [events, setEvents] = useState<EventWithVenue[]>([]);
+  const [cuisineTypes, setCuisineTypes] = useState<Array<{id: string; name: string;}>>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [processingVenues, setProcessingVenues] = useState<Set<string>>(new Set());
@@ -128,6 +131,7 @@ const Admin = () => {
         fetchRecentMembers();
         fetchBlockedUsers();
         fetchEvents();
+        fetchCuisineTypes();
         setupRealtimeSubscription();
       } else {
         toast({
@@ -276,6 +280,21 @@ const Admin = () => {
         description: "Failed to load events.",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchCuisineTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cuisine_types')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setCuisineTypes(data || []);
+    } catch (error) {
+      console.error('Error fetching cuisine types:', error);
     }
   };
 
@@ -834,7 +853,13 @@ const Admin = () => {
             <PageManagement />
           </TabsContent>
 
-          <TabsContent value="venues">
+          <TabsContent value="venues" className="space-y-6">
+            <AdminVenueCreation 
+              onVenueCreated={() => {
+                fetchVenues();
+              }}
+              cuisineTypes={cuisineTypes}
+            />
             <VenueManagement />
           </TabsContent>
 
@@ -842,12 +867,20 @@ const Admin = () => {
             <CuisineManagement />
           </TabsContent>
 
-          <TabsContent value="events">
+          <TabsContent value="events" className="space-y-6">
+            <EventManagement 
+              venues={venues} 
+              onEventCreated={() => {
+                fetchEvents();
+                fetchVenues(); // Refresh venues in case new one was created
+              }} 
+            />
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Event Management
+                  Existing Events
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -863,9 +896,7 @@ const Admin = () => {
                             <p className="text-sm text-muted-foreground">{event.venue.business_name}</p>
                             <p className="text-sm text-muted-foreground">By: {event.creator.display_name}</p>
                           </div>
-                          <Badge variant={event.approval_status === 'approved' ? 'default' : 'secondary'}>
-                            {event.approval_status}
-                          </Badge>
+                          {getEventStatusBadge(event.approval_status, event.status)}
                         </div>
                       </Card>
                     ))}

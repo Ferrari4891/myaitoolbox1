@@ -646,6 +646,103 @@ export type Database = {
         }
         Relationships: []
       }
+      event_rsvps: {
+        Row: {
+          attendee_email: string
+          attendee_name: string | null
+          event_id: string
+          guest_count: number | null
+          id: string
+          responded_at: string
+          response: string
+          response_message: string | null
+        }
+        Insert: {
+          attendee_email: string
+          attendee_name?: string | null
+          event_id: string
+          guest_count?: number | null
+          id?: string
+          responded_at?: string
+          response: string
+          response_message?: string | null
+        }
+        Update: {
+          attendee_email?: string
+          attendee_name?: string | null
+          event_id?: string
+          guest_count?: number | null
+          id?: string
+          responded_at?: string
+          response?: string
+          response_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          event_date: string
+          event_type: string
+          id: string
+          max_attendees: number | null
+          rsvp_deadline: string | null
+          status: string
+          title: string
+          updated_at: string
+          venue_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          max_attendees?: number | null
+          rsvp_deadline?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          max_attendees?: number | null
+          rsvp_deadline?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_invitations: {
         Row: {
           approval_status: string | null
