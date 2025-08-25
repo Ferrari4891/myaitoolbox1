@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageCarousel } from "@/components/ui/image-carousel";
-import { MapPin, ExternalLink, Facebook, Share2, Copy, Mail, MessageCircle } from "lucide-react";
+import { MapPin, ExternalLink, Facebook, Share2, Copy, Mail, MessageCircle, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { GrabLink } from "@/components/GrabLink";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useRef, useEffect } from "react";
 
 interface VenueCardProps {
   venue: {
@@ -24,6 +26,9 @@ interface VenueCardProps {
 
 const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
   const { toast } = useToast();
+  const [showFullText, setShowFullText] = useState(false);
+  const [shouldShowReadMore, setShouldShowReadMore] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
 
   const getVenueImages = (venue: any) => {
     const images = [venue.image_1_url, venue.image_2_url, venue.image_3_url]
@@ -54,6 +59,22 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
       const encodedAddress = encodeURIComponent(address);
       window.open(`https://maps.google.com?q=${encodedAddress}`, '_blank');
     }
+  };
+
+  useEffect(() => {
+    if (textRef.current && venue.description) {
+      const lineHeight = parseInt(window.getComputedStyle(textRef.current).lineHeight);
+      const maxHeight = lineHeight * 3; // 3 lines
+      setShouldShowReadMore(textRef.current.scrollHeight > maxHeight);
+    }
+  }, [venue.description]);
+
+  const handleReadMore = () => {
+    setShowFullText(true);
+  };
+
+  const handleBackToCard = () => {
+    setShowFullText(false);
   };
 
   const handleShare = async (platform: string) => {
@@ -189,87 +210,137 @@ const VenueCard = ({ venue, showSeeMoreLink = false }: VenueCardProps) => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <ImageCarousel
-          images={getVenueImages(venue)}
-          alt={venue.business_name}
-          className="w-full"
-          autoPlay={true}
-          interval={2000}
-        />
-        
-        <div className="space-y-2">
-          {venue.description && (
-            <p className="text-sm text-muted-foreground">
-              {venue.description}
-            </p>
-          )}
-        </div>
-        
-        <div className="h-px bg-border"></div>
-        
-        <div className="space-y-3">
-          {venue.address && (
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground">
-                  {venue.address}
+        {showFullText ? (
+          // Full text view
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToCard}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to card
+              </Button>
+            </div>
+            
+            {venue.description && (
+              <ScrollArea className="h-64 w-full rounded-md border p-4">
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {venue.description}
                 </p>
-              </div>
-            </div>
-          )}
-          
-          {venue.address && (
-            <>
-              <div className="h-px bg-border"></div>
-              <div className="flex items-center flex-wrap gap-3">
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-primary hover:text-primary/80"
-                  onClick={() => openGoogleMaps(venue.address!, venue.google_maps_link)}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  View on Google Maps
-                </Button>
-              </div>
-            </>
-          )}
-          
-          {venue.address && (
-            <div className="flex items-center gap-2">
-              <GrabLink venue={{...venue, address: venue.address}} />
-            </div>
-          )}
-          
-          {venue.facebook_link && (
-            <>
-              <div className="h-px bg-border"></div>
-              <div className="flex items-center gap-2">
-                <Facebook className="h-4 w-4 text-muted-foreground" />
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-primary hover:text-primary/80"
-                  onClick={() => window.open(venue.facebook_link, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  Facebook Page
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-        
-        {showSeeMoreLink && (
-          <div className="pt-2 border-t border-border">
-            <Link 
-              to="/approved-venues" 
-              className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm hover:bg-primary/90 transition-colors font-medium w-full text-center"
-            >
-              See more venues
-            </Link>
+              </ScrollArea>
+            )}
           </div>
+        ) : (
+          // Normal card view
+          <>
+            <ImageCarousel
+              images={getVenueImages(venue)}
+              alt={venue.business_name}
+              className="w-full"
+              autoPlay={true}
+              interval={2000}
+            />
+            
+            <div className="space-y-2">
+              {venue.description && (
+                <div className="relative">
+                  <p 
+                    ref={textRef}
+                    className={`text-sm text-muted-foreground ${!shouldShowReadMore ? '' : 'line-clamp-3'}`}
+                    style={{ 
+                      overflow: shouldShowReadMore && !showFullText ? 'hidden' : 'visible',
+                      display: shouldShowReadMore && !showFullText ? '-webkit-box' : 'block',
+                      WebkitLineClamp: shouldShowReadMore && !showFullText ? 3 : 'unset',
+                      WebkitBoxOrient: shouldShowReadMore && !showFullText ? 'vertical' : 'unset'
+                    }}
+                  >
+                    {venue.description}
+                  </p>
+                  
+                  {shouldShowReadMore && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleReadMore}
+                      className="h-auto p-0 text-primary hover:text-primary/80 mt-1"
+                    >
+                      Read more
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="h-px bg-border"></div>
+            
+            <div className="space-y-3">
+              {venue.address && (
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground">
+                      {venue.address}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {venue.address && (
+                <>
+                  <div className="h-px bg-border"></div>
+                  <div className="flex items-center flex-wrap gap-3">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-primary hover:text-primary/80"
+                      onClick={() => openGoogleMaps(venue.address!, venue.google_maps_link)}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      View on Google Maps
+                    </Button>
+                  </div>
+                </>
+              )}
+              
+              {venue.address && (
+                <div className="flex items-center gap-2">
+                  <GrabLink venue={{...venue, address: venue.address}} />
+                </div>
+              )}
+              
+              {venue.facebook_link && (
+                <>
+                  <div className="h-px bg-border"></div>
+                  <div className="flex items-center gap-2">
+                    <Facebook className="h-4 w-4 text-muted-foreground" />
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-primary hover:text-primary/80"
+                      onClick={() => window.open(venue.facebook_link, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Facebook Page
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {showSeeMoreLink && (
+              <div className="pt-2 border-t border-border">
+                <Link 
+                  to="/approved-venues" 
+                  className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm hover:bg-primary/90 transition-colors font-medium w-full text-center"
+                >
+                  See more venues
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
