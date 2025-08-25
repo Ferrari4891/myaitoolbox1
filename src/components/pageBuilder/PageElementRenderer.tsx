@@ -84,7 +84,7 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
             </CardHeader>
             <CardContent>
               <div 
-                className="prose max-w-none card-text-limit"
+                className="prose max-w-none"
                 dangerouslySetInnerHTML={{ 
                   __html: element.content.content || '<p>Text content goes here.</p>' 
                 }}
