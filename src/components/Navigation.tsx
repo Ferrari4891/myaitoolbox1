@@ -193,11 +193,11 @@ const Navigation = () => {
           {/* Logo and Site Name */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/lovable-uploads/c6be71fd-5746-49b1-bbe4-646fad1ff624.png" 
-              alt="Gallopinggeezers Logo" 
+              src="/src/assets/myaitoolbox-logo.png" 
+              alt="MyAIToolbox Logo" 
               className="h-12 w-12"
             />
-            <span className="text-xl font-bold text-primary-foreground">Gallopinggeezers.online</span>
+            <span className="text-xl font-bold text-primary-foreground">Myaitoolbox.online</span>
           </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
