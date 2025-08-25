@@ -102,7 +102,7 @@ const Index = () => {
               <h3 className="text-2xl md:text-3xl font-bold text-center text-primary mb-8">
                 Featured Venues
               </h3>
-              <div className="grid grid-cols-1 gap-6 max-w-6xl mx-auto">
+              <div className="flex flex-col gap-6 max-w-4xl mx-auto">
                 {displayedVenues.map((venue) => (
                   <VenueCard key={venue.id} venue={venue} showSeeMoreLink={true} />
                 ))}
