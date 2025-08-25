@@ -125,7 +125,7 @@ const RestaurantCuisine = () => {
           ) : (
             <ul className="space-y-6">
               {venues.map((venue) => (
-                <li key={venue.id} className="w-full">
+                <li key={venue.id} className="w-full col-span-full">
                   <Card className="shadow-elegant hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <div className="flex justify-between items-start">

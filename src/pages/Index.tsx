@@ -104,9 +104,9 @@ const Index = () => {
               </h3>
               <ul className="space-y-6 max-w-4xl mx-auto">
                 {displayedVenues.map((venue) => (
-                  <li key={venue.id} className="w-full">
-                    <VenueCard venue={venue} showSeeMoreLink={true} />
-                  </li>
+                <li key={venue.id} className="w-full col-span-full">
+                  <VenueCard venue={venue} showSeeMoreLink={true} />
+                </li>
                 ))}
               </ul>
             </div>

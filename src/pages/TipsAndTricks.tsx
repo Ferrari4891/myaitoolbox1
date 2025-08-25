@@ -51,7 +51,7 @@ const TipsAndTricks = () => {
         
         <ul className="space-y-6">
           {tips.map((tip, index) => (
-            <li key={index} className="w-full">
+            <li key={index} className="w-full col-span-full">
               <Card className="h-full">
                 <CardHeader className="bg-blue-500/10">
                   <div className="flex items-center gap-3">

@@ -158,7 +158,7 @@ const ApprovedVenues = () => {
         ) : (
           <ul className="space-y-6">
             {venues.map((venue) => (
-              <li key={venue.id} className="relative">
+              <li key={venue.id} className="relative col-span-full">
                 <div className="absolute top-6 right-6 z-20">
                   <StarRating
                     venueId={venue.id}
