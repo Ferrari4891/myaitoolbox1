@@ -865,29 +865,68 @@ export type Database = {
       menu_items: {
         Row: {
           created_at: string
+          depth: number
+          description: string | null
           href: string
+          icon_name: string | null
           id: string
+          is_visible: boolean
+          menu_type: string
           name: string
+          page_id: string | null
+          parent_id: string | null
           sort_order: number
+          target_blank: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
+          depth?: number
+          description?: string | null
           href: string
+          icon_name?: string | null
           id?: string
+          is_visible?: boolean
+          menu_type?: string
           name: string
+          page_id?: string | null
+          parent_id?: string | null
           sort_order: number
+          target_blank?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
+          depth?: number
+          description?: string | null
           href?: string
+          icon_name?: string | null
           id?: string
+          is_visible?: boolean
+          menu_type?: string
           name?: string
+          page_id?: string | null
+          parent_id?: string | null
           sort_order?: number
+          target_blank?: boolean
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       merchants: {
         Row: {
@@ -1388,7 +1427,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_menu_hierarchy: {
+        Args: { menu_type_param?: string }
+        Returns: {
+          depth: number
+          description: string
+          href: string
+          icon_name: string
+          id: string
+          name: string
+          page_id: string
+          page_slug: string
+          page_title: string
+          parent_id: string
+          sort_order: number
+          target_blank: boolean
+        }[]
+      }
     }
     Enums: {
       marketing_role:
