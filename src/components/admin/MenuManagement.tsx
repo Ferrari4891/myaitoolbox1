@@ -161,7 +161,8 @@ const MenuManagement = () => {
     
     try {
       const selectedPage = pages.find((p) => p.id === (formData.page_id === 'none' ? null : formData.page_id));
-      const effectiveHref = (formData.href?.trim() || '') || (selectedPage ? `/${selectedPage.slug}` : '#');
+      // If no custom URL is provided and a page is selected, link to the Dynamic Page route
+      const effectiveHref = (formData.href?.trim() || '') || (selectedPage ? `/page/${selectedPage.slug}` : '#');
 
       const menuData = {
         ...formData,

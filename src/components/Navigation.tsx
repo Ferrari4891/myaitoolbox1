@@ -89,6 +89,13 @@ const Navigation = () => {
     return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
   };
 
+  // Normalize hrefs for page-linked items to match our /page/:slug route
+  const resolveHref = (mi: MenuItem) => {
+    if (mi.page_slug) {
+      if (!mi.href || mi.href === `/${mi.page_slug}`) return `/page/${mi.page_slug}`;
+    }
+    return mi.href || '#';
+  };
   const handleMenuClick = (item: MenuItem, e: React.MouseEvent) => {
     // Check if this is a restricted item for non-members
     const restrictedPaths = ['/add-venue', '/schedule-event'];
@@ -121,7 +128,7 @@ const Navigation = () => {
                 {item.children?.map((child) => (
                   <Link
                     key={child.id}
-                    to={child.href}
+                    to={resolveHref(child)}
                     onClick={(e) => handleMenuClick(child, e)}
                     className="flex items-center px-4 py-2 text-foreground hover:bg-muted transition-smooth"
                   >
@@ -139,10 +146,10 @@ const Navigation = () => {
     return (
       <Link
         key={item.id}
-        to={item.href}
+        to={resolveHref(item)}
         onClick={(e) => handleMenuClick(item, e)}
         className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium ${
-          isActive(item.href) ? "border-b-2 border-primary-foreground" : ""
+          isActive(resolveHref(item)) ? "border-b-2 border-primary-foreground" : ""
         }`}
       >
         {getIcon(item.icon_name)}
@@ -157,11 +164,11 @@ const Navigation = () => {
     return (
       <div key={item.id}>
         <Link
-          to={item.href}
+          to={resolveHref(item)}
           onClick={(e) => handleMenuClick(item, e)}
           className={`flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth ${
             level > 0 ? `ml-${level * 4}` : ""
-          } ${isActive(item.href) ? "bg-muted font-semibold" : ""}`}
+          } ${isActive(resolveHref(item)) ? "bg-muted font-semibold" : ""}`}
         >
           {getIcon(item.icon_name)}
           <span className={item.icon_name ? "ml-2" : ""}>{item.name}</span>
