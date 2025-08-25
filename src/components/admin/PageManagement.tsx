@@ -10,6 +10,9 @@ import { Page, PageTemplate } from '@/types/pageBuilder';
 import { PageBuilder } from '@/components/pageBuilder/PageBuilder';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMenuHierarchy } from '@/hooks/useMenuHierarchy';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, 
   Edit, 
@@ -18,7 +21,8 @@ import {
   EyeOff, 
   Copy,
   Calendar,
-  Settings
+  Settings,
+  Menu
 } from 'lucide-react';
 
 export const PageManagement: React.FC = () => {
@@ -27,13 +31,32 @@ export const PageManagement: React.FC = () => {
   const [selectedPage, setSelectedPage] = useState<Page | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [isNewPageDialogOpen, setIsNewPageDialogOpen] = useState(false);
+  const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
+  const [selectedPageForMenu, setSelectedPageForMenu] = useState<Page | null>(null);
   const [newPageData, setNewPageData] = useState({
     title: '',
     slug: '',
     template_id: '',
+    addToMenu: false,
+    menuName: '',
+    parentMenuId: '',
+    menuOrder: 1,
+    iconName: '',
+    description: '',
+    targetBlank: false,
+  });
+  const [menuData, setMenuData] = useState({
+    addToMenu: false,
+    menuName: '',
+    parentMenuId: '',
+    menuOrder: 1,
+    iconName: '',
+    description: '',
+    targetBlank: false,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { menuItems, refetch: refetchMenu } = useMenuHierarchy();
 
   useEffect(() => {
     fetchPages();
@@ -124,6 +147,18 @@ export const PageManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Create menu item if requested
+      if (newPageData.addToMenu) {
+        await createMenuItemForPage(data.id, {
+          name: newPageData.menuName || newPageData.title,
+          parentMenuId: newPageData.parentMenuId,
+          menuOrder: newPageData.menuOrder,
+          iconName: newPageData.iconName,
+          description: newPageData.description,
+          targetBlank: newPageData.targetBlank,
+        });
+      }
+
       const newPage = {
         ...data,
         content: Array.isArray(data.content) ? data.content : []
@@ -131,7 +166,18 @@ export const PageManagement: React.FC = () => {
 
       setPages([newPage, ...pages]);
       setIsNewPageDialogOpen(false);
-      setNewPageData({ title: '', slug: '', template_id: '' });
+      setNewPageData({ 
+        title: '', 
+        slug: '', 
+        template_id: '',
+        addToMenu: false,
+        menuName: '',
+        parentMenuId: '',
+        menuOrder: 1,
+        iconName: '',
+        description: '',
+        targetBlank: false,
+      });
       
       toast({
         title: "Page Created",
@@ -146,6 +192,189 @@ export const PageManagement: React.FC = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to create page.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createMenuItemForPage = async (pageId: string, menuSettings: {
+    name: string;
+    parentMenuId: string;
+    menuOrder: number;
+    iconName: string;
+    description: string;
+    targetBlank: boolean;
+  }) => {
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .insert({
+          name: menuSettings.name,
+          href: '', // Will be auto-generated from page_id
+          parent_id: menuSettings.parentMenuId || null,
+          page_id: pageId,
+          menu_type: 'navigation',
+          sort_order: menuSettings.menuOrder,
+          depth: menuSettings.parentMenuId ? 1 : 0,
+          icon_name: menuSettings.iconName || null,
+          description: menuSettings.description || null,
+          target_blank: menuSettings.targetBlank,
+          is_visible: true,
+        });
+
+      if (error) throw error;
+      refetchMenu();
+    } catch (error) {
+      console.error('Error creating menu item:', error);
+    }
+  };
+
+  const updateMenuItemForPage = async (pageId: string, menuSettings: {
+    name: string;
+    parentMenuId: string;
+    menuOrder: number;
+    iconName: string;
+    description: string;
+    targetBlank: boolean;
+  }) => {
+    try {
+      // Check if page already has menu item
+      const { data: existingMenuItem } = await supabase
+        .from('menu_items')
+        .select('id')
+        .eq('page_id', pageId)
+        .eq('menu_type', 'navigation')
+        .single();
+
+      if (existingMenuItem) {
+        // Update existing menu item
+        const { error } = await supabase
+          .from('menu_items')
+          .update({
+            name: menuSettings.name,
+            parent_id: menuSettings.parentMenuId || null,
+            sort_order: menuSettings.menuOrder,
+            depth: menuSettings.parentMenuId ? 1 : 0,
+            icon_name: menuSettings.iconName || null,
+            description: menuSettings.description || null,
+            target_blank: menuSettings.targetBlank,
+          })
+          .eq('id', existingMenuItem.id);
+
+        if (error) throw error;
+      } else {
+        // Create new menu item
+        await createMenuItemForPage(pageId, menuSettings);
+      }
+
+      refetchMenu();
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+    }
+  };
+
+  const removeFromMenu = async (pageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .delete()
+        .eq('page_id', pageId)
+        .eq('menu_type', 'navigation');
+
+      if (error) throw error;
+      refetchMenu();
+      
+      toast({
+        title: "Removed from Menu",
+        description: "Page has been removed from the navigation menu.",
+      });
+    } catch (error) {
+      console.error('Error removing from menu:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove page from menu.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openMenuDialog = async (page: Page) => {
+    setSelectedPageForMenu(page);
+    
+    // Check if page already has menu item
+    try {
+      const { data: existingMenuItem } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('page_id', page.id)
+        .eq('menu_type', 'navigation')
+        .single();
+
+      if (existingMenuItem) {
+        setMenuData({
+          addToMenu: true,
+          menuName: existingMenuItem.name,
+          parentMenuId: existingMenuItem.parent_id || '',
+          menuOrder: existingMenuItem.sort_order,
+          iconName: existingMenuItem.icon_name || '',
+          description: existingMenuItem.description || '',
+          targetBlank: existingMenuItem.target_blank,
+        });
+      } else {
+        setMenuData({
+          addToMenu: false,
+          menuName: page.title,
+          parentMenuId: '',
+          menuOrder: 1,
+          iconName: '',
+          description: '',
+          targetBlank: false,
+        });
+      }
+    } catch (error) {
+      // Page not in menu yet
+      setMenuData({
+        addToMenu: false,
+        menuName: page.title,
+        parentMenuId: '',
+        menuOrder: 1,
+        iconName: '',
+        description: '',
+        targetBlank: false,
+      });
+    }
+    
+    setIsMenuDialogOpen(true);
+  };
+
+  const saveMenuSettings = async () => {
+    if (!selectedPageForMenu) return;
+
+    try {
+      if (menuData.addToMenu) {
+        await updateMenuItemForPage(selectedPageForMenu.id, {
+          name: menuData.menuName || selectedPageForMenu.title,
+          parentMenuId: menuData.parentMenuId,
+          menuOrder: menuData.menuOrder,
+          iconName: menuData.iconName,
+          description: menuData.description,
+          targetBlank: menuData.targetBlank,
+        });
+
+        toast({
+          title: "Menu Settings Updated",
+          description: "Page menu settings have been saved.",
+        });
+      } else {
+        await removeFromMenu(selectedPageForMenu.id);
+      }
+
+      setIsMenuDialogOpen(false);
+      setSelectedPageForMenu(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to save menu settings.",
         variant: "destructive",
       });
     }
@@ -347,6 +576,94 @@ export const PageManagement: React.FC = () => {
                 </Select>
               </div>
 
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="add-to-menu"
+                    checked={newPageData.addToMenu}
+                    onCheckedChange={(checked) => setNewPageData({ ...newPageData, addToMenu: checked })}
+                  />
+                  <Label htmlFor="add-to-menu">Add to Navigation Menu</Label>
+                </div>
+
+                {newPageData.addToMenu && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="menu-name">Menu Name</Label>
+                        <Input
+                          id="menu-name"
+                          value={newPageData.menuName}
+                          onChange={(e) => setNewPageData({ ...newPageData, menuName: e.target.value })}
+                          placeholder={newPageData.title || "Menu display name"}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="parent-menu">Parent Menu Item</Label>
+                        <Select
+                          value={newPageData.parentMenuId}
+                          onValueChange={(value) => setNewPageData({ ...newPageData, parentMenuId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Top level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Top Level</SelectItem>
+                            {menuItems.filter(item => item.depth === 0).map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="menu-order">Menu Order</Label>
+                        <Input
+                          id="menu-order"
+                          type="number"
+                          min="1"
+                          value={newPageData.menuOrder}
+                          onChange={(e) => setNewPageData({ ...newPageData, menuOrder: parseInt(e.target.value) || 1 })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="icon-name">Icon Name (Optional)</Label>
+                        <Input
+                          id="icon-name"
+                          value={newPageData.iconName}
+                          onChange={(e) => setNewPageData({ ...newPageData, iconName: e.target.value })}
+                          placeholder="e.g., Home, Settings"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="description">Description (Optional)</Label>
+                      <Textarea
+                        id="description"
+                        value={newPageData.description}
+                        onChange={(e) => setNewPageData({ ...newPageData, description: e.target.value })}
+                        placeholder="Brief description for the menu item"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="target-blank"
+                        checked={newPageData.targetBlank}
+                        onCheckedChange={(checked) => setNewPageData({ ...newPageData, targetBlank: checked })}
+                      />
+                      <Label htmlFor="target-blank">Open in new tab</Label>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsNewPageDialogOpen(false)}>
                   Cancel
@@ -359,6 +676,113 @@ export const PageManagement: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Menu Settings Dialog */}
+      <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Menu Settings: {selectedPageForMenu?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="add-to-menu-edit"
+                checked={menuData.addToMenu}
+                onCheckedChange={(checked) => setMenuData({ ...menuData, addToMenu: checked })}
+              />
+              <Label htmlFor="add-to-menu-edit">Include in Navigation Menu</Label>
+            </div>
+
+            {menuData.addToMenu && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-menu-name">Menu Name</Label>
+                    <Input
+                      id="edit-menu-name"
+                      value={menuData.menuName}
+                      onChange={(e) => setMenuData({ ...menuData, menuName: e.target.value })}
+                      placeholder={selectedPageForMenu?.title || "Menu display name"}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-parent-menu">Parent Menu Item</Label>
+                    <Select
+                      value={menuData.parentMenuId}
+                      onValueChange={(value) => setMenuData({ ...menuData, parentMenuId: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Top level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Top Level</SelectItem>
+                        {menuItems.filter(item => item.depth === 0).map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-menu-order">Menu Order</Label>
+                    <Input
+                      id="edit-menu-order"
+                      type="number"
+                      min="1"
+                      value={menuData.menuOrder}
+                      onChange={(e) => setMenuData({ ...menuData, menuOrder: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-icon-name">Icon Name (Optional)</Label>
+                    <Input
+                      id="edit-icon-name"
+                      value={menuData.iconName}
+                      onChange={(e) => setMenuData({ ...menuData, iconName: e.target.value })}
+                      placeholder="e.g., Home, Settings"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-description">Description (Optional)</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={menuData.description}
+                    onChange={(e) => setMenuData({ ...menuData, description: e.target.value })}
+                    placeholder="Brief description for the menu item"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-target-blank"
+                    checked={menuData.targetBlank}
+                    onCheckedChange={(checked) => setMenuData({ ...menuData, targetBlank: checked })}
+                  />
+                  <Label htmlFor="edit-target-blank">Open in new tab</Label>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsMenuDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveMenuSettings}>
+                Save Menu Settings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {loading ? (
         <div className="text-center py-8">Loading pages...</div>
@@ -421,6 +845,15 @@ export const PageManagement: React.FC = () => {
                     ) : (
                       <Eye className="h-3 w-3" />
                     )}
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openMenuDialog(page)}
+                    title="Menu Settings"
+                  >
+                    <Menu className="h-3 w-3" />
                   </Button>
                   
                   <Button
