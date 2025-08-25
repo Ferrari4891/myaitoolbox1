@@ -89,10 +89,10 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-xl md:text-5xl font-bold text-primary mb-6">
-              Welcome to <br className="md:hidden" />Gallopinggeezers.online
+              Welcome to <br className="md:hidden" />Myaitoolbox.online
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Welcome to Gallopinggeezers.com, where adults worldwide gather to argue about wine pairings while pretending we know the difference between "oaky" and "just tastes like wine."
+              Welcome to Myaitoolbox.online, your comprehensive platform for AI-powered tools and solutions to enhance productivity and creativity.
             </p>
           </div>
 

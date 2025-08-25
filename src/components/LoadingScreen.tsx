@@ -23,11 +23,11 @@ const LoadingScreen = ({ onLoadingComplete }: { onLoadingComplete: () => void })
       <div className="text-center">
         <img 
           src="/lovable-uploads/c6be71fd-5746-49b1-bbe4-646fad1ff624.png" 
-          alt="Gallopinggeezers Logo" 
+          alt="MyAIToolbox Logo" 
           className="h-24 w-24 mx-auto mb-4 animate-pulse"
         />
         <h1 className="text-2xl font-bold text-primary-foreground">
-          Gallopinggeezers.online
+          Myaitoolbox.online
         </h1>
         <div className="mt-4 flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-foreground"></div>
