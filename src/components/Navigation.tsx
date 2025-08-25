@@ -91,10 +91,12 @@ const Navigation = () => {
 
   // Normalize hrefs for page-linked items to match our /page/:slug route
   const resolveHref = (mi: MenuItem) => {
+    const raw = mi.href;
+    const href = raw && raw !== '#' ? raw : null;
     if (mi.page_slug) {
-      if (!mi.href || mi.href === `/${mi.page_slug}`) return `/page/${mi.page_slug}`;
+      return href || `/page/${mi.page_slug}`;
     }
-    return mi.href || '#';
+    return href || '#';
   };
   const handleMenuClick = (item: MenuItem, e: React.MouseEvent) => {
     // Check if this is a restricted item for non-members
