@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, ChevronDown, Calendar, MapPin, Plus } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,15 +9,18 @@ import { useToast } from "@/hooks/use-toast";
 import JoinNowDialog from "@/components/JoinNowDialog";
 import SignInDialog from "@/components/SignInDialog";
 import { VenueDirectoryMenu } from "@/components/VenueDirectoryMenu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [publishedPages, setPublishedPages] = useState<any[]>([]);
+  const [showVenueDropdown, setShowVenueDropdown] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth(); // Keep for admin functionality
-  const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth(); // New simple auth
+  const { isAuthenticated, user } = useAuth();
+  const { isMember, member, signOut: simpleMemberSignOut } = useSimpleAuth();
   const { toast } = useToast();
 
   // Fetch published pages for the menu
@@ -91,7 +94,16 @@ const Navigation = () => {
     }
   };
 
-  const menuItems = [
+  const handleRestrictedAction = (action: string) => {
+    toast({
+      title: "Sign In Required",
+      description: "You have to be signed in as a member to use this function. Join now It's FREE!",
+      variant: "destructive"
+    });
+    setShowJoinDialog(true);
+  };
+
+  const mobileMenuItems = [
     { label: "Home", path: "/" },
     ...(isMember || isAuthenticated 
       ? [
@@ -104,7 +116,17 @@ const Navigation = () => {
           { label: "Message Board", path: "/message-board" },
         ]
     ),
-    // Add published pages to the menu
+    ...publishedPages.map(page => ({
+      label: page.title,
+      path: `/page/${page.slug}`
+    }))
+  ];
+
+  const desktopMenuItems = [
+    { label: "Home", path: "/" },
+    { label: "How To", path: "/how-to" },
+    { label: "Tips & Tricks", path: "/tips-and-tricks" },
+    { label: "Message Board", path: "/message-board" },
     ...publishedPages.map(page => ({
       label: page.title,
       path: `/page/${page.slug}`
@@ -127,122 +149,127 @@ const Navigation = () => {
             <span className="text-xl font-bold text-primary-foreground">Gallopinggeezers.online</span>
           </Link>
 
-          {/* Hamburger Menu Button */}
-          <div
-            onClick={toggleMenu}
-            className="text-primary-foreground hover:bg-primary/20 transition-smooth p-2 rounded-md cursor-pointer flex items-center justify-center"
-            aria-label="Toggle menu"
-            style={{ width: '48px', height: '48px' }}
-          >
-            {isOpen ? <X size={48} strokeWidth={2} /> : <Menu size={48} strokeWidth={2} />}
-          </div>
-        </div>
-
-        {/* Mobile Menu - Slide out from left */}
-        <div 
-          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-elegant z-40 transform transition-transform duration-300 ease-in-out ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="px-4 py-6 space-y-2">
-            {/* Auth buttons for non-members */}
-            {!isMember && !isAuthenticated && (
-              <>
-                <Button
-                  onClick={() => {
-                    setShowJoinDialog(true);
-                    setIsOpen(false);
-                  }}
-                  className="w-full bg-primary text-white font-semibold py-3 px-4 rounded-md hover:bg-primary/90 transition-smooth"
-                >
-                  Join Now
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowSignInDialog(true);
-                    setIsOpen(false);
-                  }}
-                  variant="outline"
-                  className="w-full text-gray-800 border-gray-300 py-3 px-4 rounded-md hover:bg-gray-100 transition-smooth"
-                >
-                  Sign In
-                </Button>
-              </>
-            )}
-
-            {/* Navigation menu items */}
-            {menuItems.map((item) => (
+          {/* Desktop Navigation - Hidden on mobile */}
+          <div className="hidden lg:flex items-center space-x-6">
+            {/* Regular navigation items */}
+            {desktopMenuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={`block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth ${
-                  isActive(item.path) ? "bg-gray-100 font-semibold" : ""
+                className={`text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium ${
+                  isActive(item.path) ? "border-b-2 border-primary-foreground" : ""
                 }`}
               >
                 {item.label}
               </Link>
             ))}
 
-            {/* Add Venue and Add Event for authenticated users */}
-            {(isMember || isAuthenticated) && (
-              <>
-                <Link
-                  to="/add-venue"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
-                >
-                  Add a Venue
-                </Link>
-                <Link
-                  to="/add-event"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
-                >
-                  Add an Event
-                </Link>
-              </>
-            )}
-
-            {/* Add Venue and Add Event for non-authenticated users */}
-            {!isMember && !isAuthenticated && (
-              <>
-                <div
-                  onClick={() => {
-                    setShowJoinDialog(true);
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth cursor-pointer"
-                >
-                  Add a Venue
-                  <p className="text-xs text-gray-600 mt-1">You have to be signed in as a member to use this function. Join now It's FREE!</p>
+            {/* Add Items Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowAddDropdown(!showAddDropdown)}
+                className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
+                onBlur={() => setTimeout(() => setShowAddDropdown(false), 200)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </button>
+              {showAddDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-elegant z-50">
+                  <div className="py-2">
+                    {(isMember || isAuthenticated) ? (
+                      <>
+                        <Link
+                          to="/add-venue"
+                          className="block px-4 py-2 text-foreground hover:bg-muted transition-smooth"
+                          onClick={() => setShowAddDropdown(false)}
+                        >
+                          <MapPin className="h-4 w-4 inline mr-2" />
+                          Add a Venue
+                        </Link>
+                        <Link
+                          to="/add-event"
+                          className="block px-4 py-2 text-foreground hover:bg-muted transition-smooth"
+                          onClick={() => setShowAddDropdown(false)}
+                        >
+                          <Calendar className="h-4 w-4 inline mr-2" />
+                          Add an Event
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            handleRestrictedAction("Add a Venue");
+                            setShowAddDropdown(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-foreground hover:bg-muted transition-smooth"
+                        >
+                          <MapPin className="h-4 w-4 inline mr-2" />
+                          Add a Venue
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleRestrictedAction("Add an Event");
+                            setShowAddDropdown(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-foreground hover:bg-muted transition-smooth"
+                        >
+                          <Calendar className="h-4 w-4 inline mr-2" />
+                          Add an Event
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div
-                  onClick={() => {
-                    setShowJoinDialog(true);
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth cursor-pointer"
-                >
-                  Add an Event
-                  <p className="text-xs text-gray-600 mt-1">You have to be signed in as a member to use this function. Join now It's FREE!</p>
-                </div>
-              </>
-            )}
-
-            {/* Venue Directory */}
-            <div className="border-t pt-4 mt-4">
-              <h3 className="text-sm font-semibold text-gray-600 mb-2 px-4">Venue Directory</h3>
-              <VenueDirectoryMenu />
+              )}
             </div>
-            
-            {(isMember || isAuthenticated) && (
-              <>
+
+            {/* Venue Directory Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowVenueDropdown(!showVenueDropdown)}
+                className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
+                onBlur={() => setTimeout(() => setShowVenueDropdown(false), 200)}
+              >
+                Venue Directory
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </button>
+              {showVenueDropdown && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-elegant z-50">
+                  <div className="py-2">
+                    <VenueDirectoryMenu />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Auth buttons/menu */}
+            {!isMember && !isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={() => setShowJoinDialog(true)}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Join Now
+                </Button>
+                <Button
+                  onClick={() => setShowSignInDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                >
+                  Sign In
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
                 {isAuthenticated && (
                   <Link
                     to="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className="block w-full text-left text-gray-800 hover:bg-gray-100 py-2 px-4 rounded-md transition-smooth"
+                    className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
                   >
                     Admin Panel
                   </Link>
@@ -250,25 +277,164 @@ const Navigation = () => {
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
-                  className="w-full justify-start text-gray-800 hover:bg-gray-100 transition-smooth"
+                  size="sm"
+                  className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 mr-1" />
                   Sign Out
                 </Button>
-              </>
+              </div>
             )}
-            
-            {/* Admin Sign In - Always visible at bottom */}
-            <div className="border-t pt-4 mt-4">
-              <Link
-                to="/admin-sign-in"
-                onClick={() => setIsOpen(false)}
-                className="block w-full text-center text-sm text-gray-600 hover:text-gray-800 py-2 px-4 rounded-md transition-smooth"
-              >
-                Admin Sign In
-              </Link>
-            </div>
           </div>
+
+          {/* Mobile Hamburger Menu Button - Visible on mobile only */}
+          <div
+            onClick={toggleMenu}
+            className="lg:hidden text-primary-foreground hover:bg-primary/20 transition-smooth p-2 rounded-md cursor-pointer flex items-center justify-center"
+            aria-label="Toggle menu"
+            style={{ width: '48px', height: '48px' }}
+          >
+            {isOpen ? <X size={48} strokeWidth={2} /> : <Menu size={48} strokeWidth={2} />}
+          </div>
+        </div>
+
+        {/* Mobile Menu - Slide out from left with scroll */}
+        <div 
+          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-background shadow-elegant z-40 transform transition-transform duration-300 ease-in-out lg:hidden ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <ScrollArea className="h-full">
+            <div className="px-4 py-6 space-y-2">
+              {/* Auth buttons for non-members */}
+              {!isMember && !isAuthenticated && (
+                <>
+                  <Button
+                    onClick={() => {
+                      setShowJoinDialog(true);
+                      setIsOpen(false);
+                    }}
+                    className="w-full bg-primary text-primary-foreground font-semibold py-3 px-4 rounded-md hover:bg-primary/90 transition-smooth"
+                  >
+                    Join Now
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowSignInDialog(true);
+                      setIsOpen(false);
+                    }}
+                    variant="outline"
+                    className="w-full py-3 px-4 rounded-md transition-smooth"
+                  >
+                    Sign In
+                  </Button>
+                </>
+              )}
+
+              {/* Navigation menu items */}
+              {mobileMenuItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`block w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth ${
+                    isActive(item.path) ? "bg-muted font-semibold" : ""
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Add Venue and Add Event for authenticated users */}
+              {(isMember || isAuthenticated) && (
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Add Content</h3>
+                  <Link
+                    to="/add-venue"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Add a Venue
+                  </Link>
+                  <Link
+                    to="/add-event"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Add an Event
+                  </Link>
+                </div>
+              )}
+
+              {/* Add Venue and Add Event for non-authenticated users */}
+              {!isMember && !isAuthenticated && (
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Add Content</h3>
+                  <button
+                    onClick={() => {
+                      handleRestrictedAction("Add a Venue");
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Add a Venue
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleRestrictedAction("Add an Event");
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Add an Event
+                  </button>
+                </div>
+              )}
+
+              {/* Venue Directory */}
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-4">Venue Directory</h3>
+                <VenueDirectoryMenu />
+              </div>
+              
+              {(isMember || isAuthenticated) && (
+                <div className="border-t pt-4 mt-4">
+                  {isAuthenticated && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsOpen(false)}
+                      className="block w-full text-left text-foreground hover:bg-muted py-2 px-4 rounded-md transition-smooth"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  <Button
+                    onClick={handleSignOut}
+                    variant="outline"
+                    className="w-full justify-start mt-2 transition-smooth"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              )}
+              
+              {/* Admin Sign In - Always visible at bottom */}
+              <div className="border-t pt-4 mt-4">
+                <Link
+                  to="/admin-sign-in"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-center text-sm text-muted-foreground hover:text-foreground py-2 px-4 rounded-md transition-smooth"
+                >
+                  Admin Sign In
+                </Link>
+              </div>
+            </div>
+          </ScrollArea>
         </div>
 
         {/* Backdrop overlay */}
