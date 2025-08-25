@@ -53,12 +53,12 @@ const SortableMenuItem = ({ item, onEdit, onDelete, level = 0 }: {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style}>
       <Card className={`ml-${level * 4} cursor-move`}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <button type="button" {...attributes} {...listeners} className="p-1 cursor-grab text-muted-foreground"><GripVertical className="h-4 w-4" /></button>
               <div>
                 <h4 className="font-medium">{item.name}</h4>
                 <p className="text-sm text-muted-foreground">{item.href}</p>
@@ -160,8 +160,12 @@ const MenuManagement = () => {
     e.preventDefault();
     
     try {
+      const selectedPage = pages.find((p) => p.id === (formData.page_id === 'none' ? null : formData.page_id));
+      const effectiveHref = (formData.href?.trim() || '') || (selectedPage ? `/${selectedPage.slug}` : '#');
+
       const menuData = {
         ...formData,
+        href: effectiveHref,
         parent_id: formData.parent_id === 'none' ? null : formData.parent_id,
         page_id: formData.page_id === 'none' ? null : formData.page_id,
         menu_type: 'navigation',
@@ -197,27 +201,40 @@ const MenuManagement = () => {
       setIsDialogOpen(false);
       resetForm();
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving menu item:', error);
       toast({
         title: "Error",
-        description: "Failed to save menu item.",
+        description: `Failed to save menu item: ${error?.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
   };
 
   const getNextSortOrder = async (parentId: string | null) => {
-    const { data, error } = await supabase
-      .from('menu_items')
-      .select('sort_order')
-      .eq('parent_id', parentId)
-      .eq('menu_type', 'navigation')
-      .order('sort_order', { ascending: false })
-      .limit(1);
-    
-    if (error || !data || data.length === 0) return 1;
-    return data[0].sort_order + 1;
+    if (parentId === null) {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('sort_order')
+        .is('parent_id', null)
+        .eq('menu_type', 'navigation')
+        .order('sort_order', { ascending: false })
+        .limit(1);
+      
+      if (error || !data || data.length === 0) return 1;
+      return (data[0].sort_order ?? 0) + 1;
+    } else {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('sort_order')
+        .eq('parent_id', parentId)
+        .eq('menu_type', 'navigation')
+        .order('sort_order', { ascending: false })
+        .limit(1);
+      
+      if (error || !data || data.length === 0) return 1;
+      return (data[0].sort_order ?? 0) + 1;
+    }
   };
 
   const handleEdit = (item: MenuItem) => {
@@ -252,11 +269,11 @@ const MenuManagement = () => {
       });
       
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting menu item:', error);
       toast({
         title: "Error",
-        description: "Failed to delete menu item.",
+        description: `Failed to delete menu item: ${error?.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
@@ -302,11 +319,11 @@ const MenuManagement = () => {
       });
 
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error reordering menu items:', error);
       toast({
         title: "Error",
-        description: "Failed to reorder menu items.",
+        description: `Failed to reorder menu items: ${error?.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
