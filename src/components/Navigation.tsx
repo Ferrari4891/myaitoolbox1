@@ -108,22 +108,15 @@ const Navigation = () => {
     if (hasChildren) {
       return (
         <div key={item.id} className="relative">
-          <button
-            onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
-            onMouseEnter={() => setActiveDropdown(item.id)}
-            onMouseLeave={() => setTimeout(() => setActiveDropdown(null), 200)}
-            className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
-          >
-            {getIcon(item.icon_name)}
-            <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
-            <ChevronDown className="h-4 w-4 ml-1" />
-          </button>
-          {activeDropdown === item.id && (
-            <div 
-              className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-50"
-              onMouseEnter={() => setActiveDropdown(item.id)}
-              onMouseLeave={() => setActiveDropdown(null)}
+          <div className="relative group">
+            <button
+              className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
             >
+              {getIcon(item.icon_name)}
+              <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </button>
+            <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <div className="py-2">
                 {item.children?.map((child) => (
                   <Link
@@ -138,7 +131,7 @@ const Navigation = () => {
                 ))}
               </div>
             </div>
-          )}
+          </div>
         </div>
       );
     }
@@ -205,6 +198,12 @@ const Navigation = () => {
             {/* Auth buttons/menu */}
             {!isMember && !isAuthenticated ? (
               <div className="flex items-center space-x-3">
+                <Link
+                  to="/admin-sign-in"
+                  className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
+                >
+                  Admin Sign In
+                </Link>
                 <Button
                   onClick={() => setShowJoinDialog(true)}
                   variant="secondary"

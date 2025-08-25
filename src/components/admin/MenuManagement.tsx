@@ -24,11 +24,11 @@ const MenuManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     href: '',
-    parent_id: '',
+    parent_id: 'none',
     icon_name: '',
     description: '',
     target_blank: false,
-    page_id: '',
+    page_id: 'none',
     is_visible: true
   });
 
@@ -55,11 +55,11 @@ const MenuManagement = () => {
     setFormData({
       name: '',
       href: '',
-      parent_id: '',
+      parent_id: 'none',
       icon_name: '',
       description: '',
       target_blank: false,
-      page_id: '',
+      page_id: 'none',
       is_visible: true
     });
     setEditingItem(null);
@@ -71,9 +71,11 @@ const MenuManagement = () => {
     try {
       const menuData = {
         ...formData,
+        parent_id: formData.parent_id === 'none' ? null : formData.parent_id,
+        page_id: formData.page_id === 'none' ? null : formData.page_id,
         menu_type: 'navigation',
-        sort_order: editingItem ? editingItem.sort_order : await getNextSortOrder(formData.parent_id || null),
-        depth: formData.parent_id ? 1 : 0
+        sort_order: editingItem ? editingItem.sort_order : await getNextSortOrder(formData.parent_id === 'none' ? null : formData.parent_id),
+        depth: formData.parent_id === 'none' ? 0 : 1
       };
 
       if (editingItem) {
@@ -132,11 +134,11 @@ const MenuManagement = () => {
     setFormData({
       name: item.name,
       href: item.href,
-      parent_id: item.parent_id || '',
+      parent_id: item.parent_id || 'none',
       icon_name: item.icon_name || '',
       description: item.description || '',
       target_blank: item.target_blank,
-      page_id: item.page_id || '',
+      page_id: item.page_id || 'none',
       is_visible: true
     });
     setIsDialogOpen(true);
@@ -275,7 +277,7 @@ const MenuManagement = () => {
                       <SelectValue placeholder="Select parent (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Parent (Top Level)</SelectItem>
+                      <SelectItem value="none">No Parent (Top Level)</SelectItem>
                       {flattenMenuItems(menuItems)
                         .filter(item => item.depth === 0)
                         .map(item => (
@@ -296,7 +298,7 @@ const MenuManagement = () => {
                       <SelectValue placeholder="Select page (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Page Link</SelectItem>
+                      <SelectItem value="none">No Page Link</SelectItem>
                       {pages.map(page => (
                         <SelectItem key={page.id} value={page.id}>
                           {page.title}
