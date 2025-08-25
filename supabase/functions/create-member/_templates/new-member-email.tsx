@@ -52,7 +52,7 @@ export const NewMemberEmail = ({
         </Text>
 
         <Link
-          href={`${Deno.env.get('SITE_URL') || 'https://gallopinggeezers.online'}/sign-in`}
+          href={`${Deno.env.get('SITE_URL') || 'https://myaitoolbox.online'}/sign-in`}
           style={button}
         >
           Sign In to Your Account

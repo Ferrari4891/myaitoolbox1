@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     // Create RSVP URL - use the published production URL
-    const rsvpUrl = `https://gallopinggeezers.online/event-rsvp?token=${invitation.invite_token}`;
+    const rsvpUrl = `https://myaitoolbox.online/event-rsvp?token=${invitation.invite_token}`;
 
     // Create email content
     const emailSubject = isUpdate ? `📝 Event Updated: ${invitation.group_name}` : `🎉 You're Invited: ${invitation.group_name}`;
