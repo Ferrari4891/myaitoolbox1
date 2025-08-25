@@ -21,6 +21,12 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
   onDelete,
   onMove
 }) => {
+  // Ensure all possible col-span classes are present for Tailwind JIT
+  const COL_SPANS = [
+    'md:col-span-1','md:col-span-2','md:col-span-3','md:col-span-4','md:col-span-5','md:col-span-6',
+    'md:col-span-7','md:col-span-8','md:col-span-9','md:col-span-10','md:col-span-11','md:col-span-12'
+  ];
+
   const renderElement = () => {
     switch (element.type) {
       case 'hero':
@@ -120,11 +126,13 @@ export const PageElementRenderer: React.FC<PageElementRendererProps> = ({
     }
   };
 
+  const getMdColSpan = (w: number) => COL_SPANS[Math.min(Math.max(w,1),12)-1];
+  const mdColSpanClass = getMdColSpan(element.position.width);
+
   return (
     <div 
-      className={`relative ${isEditing ? 'border-2 border-dashed border-primary/50 hover:border-primary' : ''}`}
+      className={`relative col-span-12 ${mdColSpanClass} ${isEditing ? 'border-2 border-dashed border-primary/50 hover:border-primary' : ''}`}
       style={{
-        gridColumn: `span ${element.position.width}`,
         minHeight: `${element.position.height}px`
       }}
     >

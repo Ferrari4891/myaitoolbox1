@@ -110,7 +110,7 @@ const DynamicPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <div className="container mx-auto py-8">
-        <div className="grid grid-cols-12 gap-4" style={{ minHeight: '800px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4" style={{ minHeight: '800px' }}>
           {page.content?.map((element: any) => (
             <PageElementRenderer key={element.id} element={element} />
           ))}
