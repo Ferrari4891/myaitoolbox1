@@ -125,7 +125,7 @@ const Navigation = () => {
               <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
               <ChevronDown className="h-4 w-4 ml-1" />
             </button>
-            <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-[60] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <div className="py-2">
                 {item.children?.map((child) => (
                   <Link
@@ -201,7 +201,7 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
-          <div className="hidden lg:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-6">
             {!loading && menuItems.map(item => renderDesktopMenuItem(item))}
 
             {/* Auth buttons/menu */}
@@ -255,7 +255,7 @@ const Navigation = () => {
           {/* Mobile Hamburger Menu Button - Visible on mobile only */}
           <div
             onClick={toggleMenu}
-            className="lg:hidden text-primary-foreground hover:bg-primary/20 transition-smooth p-2 rounded-md cursor-pointer flex items-center justify-center"
+            className="md:hidden text-primary-foreground hover:bg-primary/20 transition-smooth p-2 rounded-md cursor-pointer flex items-center justify-center"
             aria-label="Toggle menu"
             style={{ width: '48px', height: '48px' }}
           >
@@ -265,7 +265,7 @@ const Navigation = () => {
 
         {/* Mobile Menu - Slide out from left with scroll */}
         <div 
-          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-background shadow-elegant z-40 transform transition-transform duration-300 ease-in-out lg:hidden ${
+          className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-background shadow-elegant z-40 transform transition-transform duration-300 ease-in-out md:hidden ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
