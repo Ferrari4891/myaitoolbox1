@@ -119,11 +119,11 @@ const Navigation = () => {
         <div key={item.id} className="relative">
           <div className="relative group">
             <button
-              className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
+              className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
             >
               {getIcon(item.icon_name)}
               <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
-              <ChevronDown className="h-4 w-4 ml-1" />
+              <ChevronDown className="h-3 w-3 ml-1" />
             </button>
             <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-elegant z-[60] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <div className="py-2">
@@ -150,7 +150,7 @@ const Navigation = () => {
         key={item.id}
         to={resolveHref(item)}
         onClick={(e) => handleMenuClick(item, e)}
-        className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium ${
+        className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm ${
           isActive(resolveHref(item)) ? "border-b-2 border-primary-foreground" : ""
         }`}
       >
@@ -201,15 +201,15 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-3">
             {!loading && menuItems.map(item => renderDesktopMenuItem(item))}
 
             {/* Auth buttons/menu */}
             {!isMember && !isAuthenticated ? (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <Link
                   to="/admin-sign-in"
-                  className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
+                  className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-xs"
                 >
                   Admin Sign In
                 </Link>
@@ -230,11 +230,11 @@ const Navigation = () => {
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 {isAuthenticated && (
                   <Link
                     to="/admin"
-                    className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium"
+                    className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
                   >
                     Admin Panel
                   </Link>
