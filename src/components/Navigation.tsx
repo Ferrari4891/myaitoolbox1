@@ -119,7 +119,7 @@ const Navigation = () => {
         <div key={item.id} className="relative">
           <div className="relative group">
             <button
-              className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
+              className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm px-2 py-1"
             >
               {getIcon(item.icon_name)}
               <span className={item.icon_name ? "ml-1" : ""}>{item.name}</span>
@@ -150,7 +150,7 @@ const Navigation = () => {
         key={item.id}
         to={resolveHref(item)}
         onClick={(e) => handleMenuClick(item, e)}
-        className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm ${
+        className={`flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm px-2 py-1 ${
           isActive(resolveHref(item)) ? "border-b-2 border-primary-foreground" : ""
         }`}
       >
@@ -190,65 +190,93 @@ const Navigation = () => {
     <nav className="bg-primary shadow-elegant relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo and Site Name */}
-          <Link to="/" className="flex items-center space-x-3">
+          {/* Logo and Site Name - Compact */}
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={myLogo} 
               alt="MyAIToolbox Logo" 
-              className="h-12 w-12"
+              className="h-8 w-8"
             />
-            <span className="text-xl font-bold text-primary-foreground">Myaitoolbox.online</span>
+            <span className="text-lg font-bold text-primary-foreground hidden sm:block">MyAIToolbox</span>
           </Link>
 
-          {/* Desktop Navigation - Hidden on mobile */}
-          <div className="hidden md:flex items-center space-x-3">
-            {!loading && menuItems.map(item => renderDesktopMenuItem(item))}
+          {/* Desktop Navigation - Compact layout */}
+          <div className="hidden md:flex items-center flex-1 justify-center max-w-2xl mx-4">
+            <div className="flex items-center space-x-1 overflow-x-auto">
+              {!loading && menuItems.slice(0, 4).map(item => renderDesktopMenuItem(item))}
+              {menuItems.length > 4 && (
+                <div className="relative group">
+                  <button className="flex items-center text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm px-2 py-1">
+                    More
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </button>
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-elegant z-[60] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="py-2">
+                      {menuItems.slice(4).map((item) => (
+                        <Link
+                          key={item.id}
+                          to={resolveHref(item)}
+                          onClick={(e) => handleMenuClick(item, e)}
+                          className="flex items-center px-4 py-2 text-foreground hover:bg-muted transition-smooth text-sm"
+                        >
+                          {getIcon(item.icon_name)}
+                          <span className={item.icon_name ? "ml-2" : ""}>{item.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-            {/* Auth buttons/menu */}
+          {/* Auth Section - Compact */}
+          <div className="hidden md:flex items-center space-x-2 flex-shrink-0">
             {!isMember && !isAuthenticated ? (
-              <div className="flex items-center space-x-2">
+              <>
                 <Link
                   to="/admin-sign-in"
-                  className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-xs"
+                  className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-xs px-2"
                 >
-                  Admin Sign In
+                  Admin
                 </Link>
                 <Button
                   onClick={() => setShowJoinDialog(true)}
                   variant="secondary"
                   size="sm"
+                  className="text-xs px-3 py-1"
                 >
-                  Join Now
+                  Join
                 </Button>
                 <Button
                   onClick={() => setShowSignInDialog(true)}
                   variant="outline"
                   size="sm"
-                  className="text-blue-600 border-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+                  className="text-blue-600 border-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold text-xs px-3 py-1"
                 >
                   Sign In
                 </Button>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center space-x-2">
+              <>
                 {isAuthenticated && (
                   <Link
                     to="/admin"
-                    className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-sm"
+                    className="text-primary-foreground hover:text-primary-foreground/80 transition-smooth font-medium text-xs px-2"
                   >
-                    Admin Panel
+                    Admin
                   </Link>
                 )}
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
                   size="sm"
-                  className="text-blue-600 border-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  className="text-blue-600 border-primary-foreground hover:bg-primary-foreground hover:text-primary text-xs px-3 py-1"
                 >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Sign Out
+                  <LogOut className="h-3 w-3 mr-1" />
+                  Out
                 </Button>
-              </div>
+              </>
             )}
           </div>
 
